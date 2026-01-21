@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Chronos Protocol</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            serif: ['Playfair Display', 'serif'],
+          },
+          colors: {
+            pearl: '#FBFAF5',
+            charcoal: '#1A1A1A',
+          },
+        },
+      },
+    }
+  </script>
+</head>
+<body class="bg-pearl text-charcoal font-sans antialiased min-h-screen">
+  <!-- Minimalist Nav -->
+  <nav class="border-b border-charcoal/5 sticky top-0 bg-pearl/95 backdrop-blur-sm z-50">
+    <div class="max-w-7xl mx-auto px-6 md:px-10 py-5">
+      <div class="grid grid-cols-12 gap-4 items-center">
+        <a href="#" class="col-span-6 md:col-span-4 text-charcoal font-sans font-medium tracking-[0.2em] text-sm md:text-base hover:opacity-80 transition-opacity">CHRONOS</a>
+        <a href="#membership" class="col-span-6 md:col-span-4 md:col-start-9 text-charcoal font-sans font-medium tracking-[0.2em] text-sm md:text-base text-right hover:opacity-80 transition-opacity">MEMBERSHIP</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <header class="border-b border-charcoal/5">
+    <div class="max-w-7xl mx-auto px-6 md:px-10 py-24 md:py-36 lg:py-44">
+      <div class="grid grid-cols-12 gap-4 md:gap-6">
+        <h1 class="col-span-12 font-serif font-light text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl tracking-tight leading-[1.05] text-charcoal">
+          The End of<br>Random Aging
+        </h1>
+        <p class="col-span-12 md:col-span-6 lg:col-span-5 md:col-start-7 lg:col-start-8 mt-8 md:mt-12 font-sans font-light text-charcoal/70 text-base md:text-lg leading-relaxed">
+          Precision longevity for the 0.1%. By Invitation Only.
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Biometric Grid -->
+  <section class="border-b border-charcoal/5">
+    <div class="max-w-7xl mx-auto px-6 md:px-10 py-16 md:py-24">
+      <div class="grid grid-cols-12 gap-4 md:gap-6">
+        <!-- HRV -->
+        <article class="col-span-12 md:col-span-4 border border-charcoal/5 p-6 md:p-8 flex flex-col hover:border-charcoal/10 transition-colors">
+          <div class="flex items-center justify-between mb-4">
+            <span class="font-sans font-light tracking-[0.15em] text-xs text-charcoal/60 uppercase">HRV</span>
+            <span class="inline-flex items-center gap-1.5 font-sans font-light text-[10px] tracking-widest text-charcoal/45 uppercase">
+              <span class="inline-block w-1 h-1 rounded-full bg-charcoal/50 animate-pulse" aria-hidden="true"></span>
+              Live
+            </span>
+          </div>
+          <h3 class="font-serif font-light text-2xl md:text-3xl text-charcoal mb-3">Heart Rate Variability</h3>
+          <div class="flex items-baseline gap-3 mb-5">
+            <span class="font-serif font-light text-2xl md:text-3xl tabular-nums text-charcoal">
+              <span id="live-hrv" class="transition-opacity duration-300 ease-out">42</span> <span class="font-sans font-light text-sm text-charcoal/60">ms</span>
+            </span>
+            <span class="text-charcoal/30">·</span>
+            <span class="font-serif font-light text-2xl md:text-3xl tabular-nums text-charcoal">
+              <span id="live-hr" class="transition-opacity duration-300 ease-out">62</span> <span class="font-sans font-light text-sm text-charcoal/60">bpm</span>
+            </span>
+          </div>
+          <div class="flex-1 min-h-[100px] flex items-end">
+            <svg viewBox="0 0 200 80" class="w-full h-24 md:h-28" fill="none" stroke="#1A1A1A" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M0 50 Q25 20 50 45 T100 35 T150 55 T200 25" opacity="0.9"/>
+              <path d="M0 55 Q30 40 60 50 T120 45 T180 60" opacity="0.4"/>
+            </svg>
+          </div>
+          <p class="font-sans font-light text-sm text-charcoal/60 mt-4">Nervous system resilience</p>
+        </article>
+
+        <!-- Deep Sleep -->
+        <article class="col-span-12 md:col-span-4 border border-charcoal/5 p-6 md:p-8 flex flex-col hover:border-charcoal/10 transition-colors">
+          <span class="font-sans font-light tracking-[0.15em] text-xs text-charcoal/60 uppercase mb-4">Sleep</span>
+          <h3 class="font-serif font-light text-2xl md:text-3xl text-charcoal mb-6">Deep Sleep</h3>
+          <div class="flex-1 min-h-[120px] flex items-end">
+            <svg viewBox="0 0 200 80" class="w-full h-24 md:h-28" fill="none" stroke="#1A1A1A" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M0 60 L20 55 L40 45 L60 35 L80 30 L100 28 L120 30 L140 35 L160 45 L180 55 L200 60" opacity="0.9"/>
+              <path d="M0 65 L50 60 L100 55 L150 58 L200 62" opacity="0.35"/>
+            </svg>
+          </div>
+          <p class="font-sans font-light text-sm text-charcoal/60 mt-4">Recovery and restoration</p>
+        </article>
+
+        <!-- Glucose -->
+        <article class="col-span-12 md:col-span-4 border border-charcoal/5 p-6 md:p-8 flex flex-col hover:border-charcoal/10 transition-colors">
+          <span class="font-sans font-light tracking-[0.15em] text-xs text-charcoal/60 uppercase mb-4">Glucose</span>
+          <h3 class="font-serif font-light text-2xl md:text-3xl text-charcoal mb-6">Glucose Stability</h3>
+          <div class="flex-1 min-h-[120px] flex items-end">
+            <svg viewBox="0 0 200 80" class="w-full h-24 md:h-28" fill="none" stroke="#1A1A1A" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M0 45 L40 50 L80 40 L120 48 L160 42 L200 45" opacity="0.9"/>
+              <line x1="0" y1="40" x2="200" y2="40" stroke-dasharray="4 2" opacity="0.25"/>
+            </svg>
+          </div>
+          <p class="font-sans font-light text-sm text-charcoal/60 mt-4">Metabolic precision</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Action -->
+  <section id="membership" class="border-b border-charcoal/5">
+    <div class="max-w-7xl mx-auto px-6 md:px-10 py-20 md:py-28">
+      <div class="grid grid-cols-12 gap-4 md:gap-6 items-center">
+        <div class="col-span-12 md:col-span-7">
+          <h2 class="font-serif font-light text-3xl md:text-4xl lg:text-5xl text-charcoal leading-tight">
+            One protocol.<br>Measurable results.
+          </h2>
+          <p class="font-sans font-light text-charcoal/60 mt-4 md:mt-6 text-base md:text-lg max-w-md">
+            Join members who are optimizing their biological age with data-driven protocols.
+          </p>
+        </div>
+        <div class="col-span-12 md:col-span-5 flex md:justify-end">
+          <a href="#" class="inline-block bg-charcoal text-pearl font-sans font-medium tracking-[0.15em] text-sm uppercase py-4 px-8 border border-charcoal hover:bg-charcoal/90 transition-colors">
+            Request Membership Audit
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="py-8 md:py-10">
+    <div class="max-w-7xl mx-auto px-6 md:px-10">
+      <div class="grid grid-cols-12 gap-4">
+        <p class="col-span-12 font-sans font-light text-xs text-charcoal/40 tracking-wider">
+          © The Chronos Protocol
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var elHrv = document.getElementById('live-hrv');
+      var elHr = document.getElementById('live-hr');
+      if (!elHrv || !elHr) return;
+
+      var hrv = 42, hr = 62;
+
+      function update() {
+        hrv = Math.round(Math.min(52, Math.max(36, hrv + (Math.random() - 0.5) * 8)));
+        hr = Math.round(Math.min(68, Math.max(56, hr + (Math.random() - 0.5) * 4)));
+
+        elHrv.style.opacity = '0.5';
+        elHr.style.opacity = '0.5';
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            elHrv.textContent = hrv;
+            elHr.textContent = hr;
+            elHrv.style.opacity = '1';
+            elHr.style.opacity = '1';
+          });
+        });
+      }
+
+      setInterval(update, 3000);
+      setTimeout(update, 800);
+    })();
+  </script>
+</body>
+</html>
