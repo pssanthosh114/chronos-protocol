@@ -124,13 +124,52 @@
           </p>
         </div>
         <div class="col-span-12 md:col-span-5 flex md:justify-end">
-          <a href="#" class="inline-block bg-charcoal text-pearl font-sans font-medium tracking-[0.15em] text-sm uppercase py-4 px-8 border border-charcoal hover:bg-charcoal/90 transition-colors">
+          <button type="button" id="open-application-modal" class="inline-block bg-charcoal text-pearl font-sans font-medium tracking-[0.15em] text-sm uppercase py-4 px-8 border border-charcoal hover:bg-charcoal/90 transition-colors cursor-pointer">
             Request Membership Audit
-          </a>
+          </button>
         </div>
       </div>
     </div>
   </section>
+
+  <!-- Application Modal -->
+  <div id="application-modal" class="fixed inset-0 z-[100] hidden p-4 md:p-8 bg-charcoal/10 transition-opacity duration-300" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="bg-white w-full max-w-md border border-charcoal/10 relative max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+      <button type="button" class="absolute top-8 right-8 w-8 h-8 flex items-center justify-center text-charcoal/40 hover:text-charcoal font-light text-xl leading-none transition-colors" aria-label="Close" id="close-application-modal">×</button>
+
+      <div id="modal-form" class="px-10 md:px-14 pt-12 pb-14 md:pt-16 md:pb-20">
+        <h2 id="modal-title" class="font-sans font-light text-[10px] tracking-[0.25em] uppercase text-charcoal/50 mb-12">Membership Application</h2>
+        <form id="application-form" class="space-y-10">
+          <div>
+            <label for="app-full-name" class="block font-sans font-light text-sm text-charcoal/70 mb-3">Full Name</label>
+            <input type="text" id="app-full-name" name="fullName" class="w-full bg-transparent border-b border-charcoal/10 py-3 font-sans font-light text-charcoal placeholder-charcoal/30 focus:border-charcoal/20 focus:outline-none transition-colors" placeholder=" " autocomplete="name">
+          </div>
+          <div>
+            <label for="app-role-company" class="block font-sans font-light text-sm text-charcoal/70 mb-3">Executive Role / Company</label>
+            <input type="text" id="app-role-company" name="roleCompany" class="w-full bg-transparent border-b border-charcoal/10 py-3 font-sans font-light text-charcoal placeholder-charcoal/30 focus:border-charcoal/20 focus:outline-none transition-colors" placeholder=" ">
+          </div>
+          <div>
+            <label for="app-objective" class="block font-sans font-light text-sm text-charcoal/70 mb-3">Primary Health Objective</label>
+            <textarea id="app-objective" name="objective" rows="3" class="w-full bg-transparent border border-charcoal/10 py-3 px-3 font-sans font-light text-charcoal placeholder-charcoal/30 focus:border-charcoal/20 focus:outline-none transition-colors resize-none" placeholder=" "></textarea>
+          </div>
+          <div class="pt-4">
+            <button type="submit" class="w-full bg-charcoal text-white font-sans font-medium tracking-[0.15em] text-sm uppercase py-4 border border-charcoal hover:bg-charcoal/90 transition-colors cursor-pointer">
+              Submit Application
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div id="modal-thanks" class="px-10 md:px-14 pt-12 pb-14 md:pt-16 md:pb-20 hidden">
+        <p class="font-sans font-light text-charcoal/80 text-base md:text-lg leading-relaxed">
+          Your request is being reviewed by the Clinical Director. Expect a response via your @joinchronos.com email within 24 hours.
+        </p>
+        <button type="button" id="close-application-modal-thanks" class="mt-12 font-sans font-light text-sm text-charcoal/60 hover:text-charcoal tracking-[0.1em] uppercase transition-colors cursor-pointer">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Footer -->
   <footer class="py-8 md:py-10">
@@ -169,6 +208,53 @@
 
       setInterval(update, 3000);
       setTimeout(update, 800);
+    })();
+
+    (function () {
+      var modal = document.getElementById('application-modal');
+      var form = document.getElementById('application-form');
+      var formView = document.getElementById('modal-form');
+      var thanksView = document.getElementById('modal-thanks');
+
+      function openModal() {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex', 'items-center', 'justify-center');
+        formView.classList.remove('hidden');
+        thanksView.classList.add('hidden');
+        form.reset();
+        document.body.style.overflow = 'hidden';
+        setTimeout(function () { document.getElementById('app-full-name').focus(); }, 50);
+      }
+
+      function closeModal() {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex', 'items-center', 'justify-center');
+        formView.classList.remove('hidden');
+        thanksView.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+
+      function showThanks() {
+        formView.classList.add('hidden');
+        thanksView.classList.remove('hidden');
+      }
+
+      document.getElementById('open-application-modal').addEventListener('click', openModal);
+      document.getElementById('close-application-modal').addEventListener('click', closeModal);
+      document.getElementById('close-application-modal-thanks').addEventListener('click', closeModal);
+
+      modal.addEventListener('click', function (e) {
+        if (e.target === modal) closeModal();
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal();
+      });
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        showThanks();
+      });
     })();
   </script>
 </body>
