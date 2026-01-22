@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chronos Protocol - AI Longevity Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            carbon: '#0A0C10',
+            sage: '#B4E33D',
+            amber: '#F59E0B',
+          },
+          letterSpacing: {
+            'wide': '0.05em',
+            'wider': '0.1em',
+            'widest': '0.15em',
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    @keyframes pulse-subtle {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    @keyframes lift {
+      from { transform: translateY(0); }
+      to { transform: translateY(-4px); }
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.02);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .card-hover {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .card-hover:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(180, 227, 61, 0.08);
+      border-color: rgba(180, 227, 61, 0.2);
+    }
+    .sparkline {
+      stroke: #B4E33D;
+      fill: none;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+  </style>
+</head>
+<body class="bg-carbon text-white font-sans antialiased min-h-screen" style="letter-spacing: 0.02em;">
+  <div class="min-h-screen">
+    <!-- Bio-Clock Header -->
+    <header class="border-b border-white/10 bg-carbon/80 backdrop-blur-sm sticky top-0 z-50">
+      <div class="max-w-[1600px] mx-auto px-6 md:px-10 py-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-8">
+            <span class="text-white/60 text-xs font-medium tracking-wider">Member: <span class="text-white">Santhosh</span></span>
+            <span class="text-white/60 text-xs font-medium tracking-wider">Protocol Status: <span class="text-sage">Optimal</span></span>
+          </div>
+          <div class="text-xs text-white/40 tracking-widest font-light">CHRONOS</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Dashboard -->
+    <main class="max-w-[1600px] mx-auto px-6 md:px-10 py-10 md:py-16">
+      <div class="space-y-10">
+        <!-- Primary Metric Card - Biological Age with Line Chart -->
+        <section>
+          <div class="glass rounded-2xl p-8 md:p-12 card-hover">
+            <div class="flex items-start justify-between mb-8">
+              <div>
+                <h2 class="text-white/50 text-xs font-medium tracking-widest uppercase mb-3">Biological Age</h2>
+                <div class="flex items-baseline gap-3">
+                  <span class="text-7xl md:text-8xl font-light text-white tabular-nums" style="letter-spacing: -0.02em;">34.2</span>
+                  <span class="text-white/40 text-xl font-light">years</span>
+                </div>
+                <div class="flex items-center gap-2 mt-4">
+                  <svg class="w-4 h-4 text-sage" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                  </svg>
+                  <span class="text-sage font-medium text-sm tracking-wide">-3.8 years reversal</span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- High-fidelity Line Chart -->
+            <div class="mt-8">
+              <div class="h-48 md:h-64 relative">
+                <svg viewBox="0 0 800 200" class="w-full h-full" preserveAspectRatio="none">
+                  <!-- Grid lines -->
+                  <defs>
+                    <linearGradient id="ageGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                      <stop offset="0%" style="stop-color:#B4E33D;stop-opacity:0.2" />
+                      <stop offset="100%" style="stop-color:#B4E33D;stop-opacity:0" />
+                    </linearGradient>
+                  </defs>
+                  <!-- Background grid -->
+                  <g opacity="0.1">
+                    <line x1="0" y1="50" x2="800" y2="50" stroke="white" stroke-width="0.5" />
+                    <line x1="0" y1="100" x2="800" y2="100" stroke="white" stroke-width="0.5" />
+                    <line x1="0" y1="150" x2="800" y2="150" stroke="white" stroke-width="0.5" />
+                  </g>
+                  <!-- Area under curve -->
+                  <path d="M 0 180 Q 100 170 200 160 T 400 140 T 600 120 T 800 100 L 800 200 L 0 200 Z" fill="url(#ageGradient)" />
+                  <!-- Main trend line (declining/reversing) -->
+                  <path d="M 0 180 Q 100 170 200 160 T 400 140 T 600 120 T 800 100" 
+                        stroke="#B4E33D" 
+                        stroke-width="3" 
+                        fill="none" 
+                        stroke-linecap="round" 
+                        stroke-linejoin="round"
+                        class="sparkline" />
+                  <!-- Data points -->
+                  <circle cx="0" cy="180" r="4" fill="#B4E33D" />
+                  <circle cx="200" cy="160" r="4" fill="#B4E33D" />
+                  <circle cx="400" cy="140" r="4" fill="#B4E33D" />
+                  <circle cx="600" cy="120" r="4" fill="#B4E33D" />
+                  <circle cx="800" cy="100" r="5" fill="#B4E33D" />
+                </svg>
+              </div>
+              <div class="flex items-center justify-between mt-4 text-xs text-white/40">
+                <span>6 months ago</span>
+                <span>Today</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Clean Data Cards with Sparklines -->
+        <section>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- HRV Card -->
+            <div class="glass rounded-xl p-6 card-hover">
+              <div class="flex items-center justify-between mb-4">
+                <span class="text-white/40 text-xs font-medium tracking-widest uppercase">HRV</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-sage animate-pulse-subtle"></span>
+              </div>
+              <div class="flex items-end justify-between">
+                <div>
+                  <div class="text-4xl font-light text-white tabular-nums mb-1">68</div>
+                  <div class="text-white/40 text-xs font-light">ms</div>
+                </div>
+                <div class="flex-1 ml-6 h-12">
+                  <svg viewBox="0 0 120 40" class="w-full h-full" preserveAspectRatio="none">
+                    <path d="M 0 30 Q 15 25 30 28 T 60 26 T 90 24 T 120 22" 
+                          class="sparkline" 
+                          opacity="0.8" />
+                  </svg>
+                </div>
+              </div>
+              <div class="mt-4 pt-4 border-t border-white/10">
+                <span class="text-sage text-xs font-medium tracking-wide">Optimal Range</span>
+              </div>
+            </div>
+
+            <!-- Deep Sleep Card -->
+            <div class="glass rounded-xl p-6 card-hover">
+              <div class="flex items-center justify-between mb-4">
+                <span class="text-white/40 text-xs font-medium tracking-widest uppercase">Deep Sleep</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-sage animate-pulse-subtle"></span>
+              </div>
+              <div class="flex items-end justify-between">
+                <div>
+                  <div class="text-4xl font-light text-white tabular-nums mb-1">2h 14m</div>
+                  <div class="text-white/40 text-xs font-light">last night</div>
+                </div>
+                <div class="flex-1 ml-6 h-12">
+                  <svg viewBox="0 0 120 40" class="w-full h-full" preserveAspectRatio="none">
+                    <path d="M 0 35 L 20 32 L 40 28 L 60 25 L 80 22 L 100 20 L 120 18" 
+                          class="sparkline" 
+                          opacity="0.8" />
+                  </svg>
+                </div>
+              </div>
+              <div class="mt-4 pt-4 border-t border-white/10">
+                <span class="text-sage text-xs font-medium tracking-wide">Recovery Optimized</span>
+              </div>
+            </div>
+
+            <!-- Cortisol Card -->
+            <div class="glass rounded-xl p-6 card-hover">
+              <div class="flex items-center justify-between mb-4">
+                <span class="text-white/40 text-xs font-medium tracking-widest uppercase">Cortisol</span>
+                <span class="w-1.5 h-1.5 rounded-full bg-amber animate-pulse-subtle"></span>
+              </div>
+              <div class="flex items-end justify-between">
+                <div>
+                  <div class="text-4xl font-light text-white tabular-nums mb-1">12.3</div>
+                  <div class="text-white/40 text-xs font-light">μg/dL</div>
+                </div>
+                <div class="flex-1 ml-6 h-12">
+                  <svg viewBox="0 0 120 40" class="w-full h-full" preserveAspectRatio="none">
+                    <path d="M 0 20 Q 20 18 40 19 T 80 21 T 120 22" 
+                          class="sparkline" 
+                          stroke="#F59E0B"
+                          opacity="0.8" />
+                  </svg>
+                </div>
+              </div>
+              <div class="mt-4 pt-4 border-t border-white/10">
+                <span class="text-amber text-xs font-medium tracking-wide">Monitor</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- AI Clinical Engine Box -->
+        <section>
+          <div class="glass rounded-2xl p-8 md:p-10 card-hover">
+            <h3 class="text-white/50 text-xs font-medium tracking-widest uppercase mb-6">Autonomous Intelligence Feed</h3>
+            <div class="glass rounded-xl p-8 md:p-10 border border-white/10">
+              <div class="space-y-6">
+                <!-- STATUS -->
+                <div id="status-section" class="opacity-0">
+                  <div class="flex items-center gap-3 mb-1">
+                    <span class="text-white/60 text-xs font-medium tracking-widest uppercase">STATUS:</span>
+                    <span class="w-2 h-2 rounded-full bg-sage animate-pulse-subtle"></span>
+                  </div>
+                  <p class="text-[#E5E7EB] text-base font-light leading-relaxed ml-0">Optimal Baseline</p>
+                </div>
+
+                <!-- INSIGHT -->
+                <div id="insight-section" class="opacity-0">
+                  <div class="mb-1">
+                    <span class="text-white/60 text-xs font-medium tracking-widest uppercase">INSIGHT:</span>
+                  </div>
+                  <p class="text-[#E5E7EB] text-base font-light leading-relaxed ml-0">HRV (68ms) indicates high neural readiness. Deep sleep recovery is prioritized.</p>
+                </div>
+
+                <!-- DIRECTIVE -->
+                <div id="directive-section" class="opacity-0">
+                  <div class="mb-1">
+                    <span class="text-white/60 text-xs font-medium tracking-widest uppercase">DIRECTIVE:</span>
+                  </div>
+                  <p class="text-sage text-base font-light leading-relaxed ml-0">Execute Protocol Alpha. Focus: Zone 2 Cardiovascular Load. Adjust evening magnesium intake to +200mg based on metabolic trend.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    (function() {
+      // Smooth fade-in animation for consultation sections
+      var statusSection = document.getElementById('status-section');
+      var insightSection = document.getElementById('insight-section');
+      var directiveSection = document.getElementById('directive-section');
+      
+      function fadeIn(element, delay) {
+        setTimeout(function() {
+          element.style.transition = 'opacity 0.8s ease-out, transform 0.8s ease-out';
+          element.style.opacity = '1';
+          element.style.transform = 'translateY(0)';
+        }, delay);
+      }
+      
+      // Initialize elements with slight offset for smooth entrance
+      [statusSection, insightSection, directiveSection].forEach(function(el) {
+        el.style.transform = 'translateY(10px)';
+      });
+      
+      // Fade in sections sequentially for elegant consultation appearance
+      fadeIn(statusSection, 600);
+      fadeIn(insightSection, 1000);
+      fadeIn(directiveSection, 1400);
+    })();
+  </script>
+</body>
+</html>
