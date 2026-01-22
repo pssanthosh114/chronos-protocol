@@ -139,18 +139,19 @@
 
       <div id="modal-form" class="px-10 md:px-14 pt-12 pb-14 md:pt-16 md:pb-20">
         <h2 id="modal-title" class="font-sans font-light text-[10px] tracking-[0.25em] uppercase text-charcoal/50 mb-12">Membership Application</h2>
-        <form id="application-form" class="space-y-10">
+        <form id="application-form" action="https://formspree.io/f/mgoobogp" method="POST" class="space-y-10">
+          <input type="hidden" name="_subject" value="New Membership Application - Chronos Protocol">
           <div>
             <label for="app-full-name" class="block font-sans font-light text-sm text-charcoal/70 mb-3">Full Name</label>
-            <input type="text" id="app-full-name" name="fullName" class="w-full bg-transparent border-b border-charcoal/10 py-3 font-sans font-light text-charcoal placeholder-charcoal/30 focus:border-charcoal/20 focus:outline-none transition-colors" placeholder=" " autocomplete="name">
+            <input type="text" id="app-full-name" name="full_name" required class="w-full bg-transparent border-b border-charcoal/10 py-3 font-sans font-light text-charcoal placeholder-charcoal/30 focus:border-charcoal/20 focus:outline-none transition-colors" placeholder=" " autocomplete="name">
           </div>
           <div>
             <label for="app-role-company" class="block font-sans font-light text-sm text-charcoal/70 mb-3">Executive Role / Company</label>
-            <input type="text" id="app-role-company" name="roleCompany" class="w-full bg-transparent border-b border-charcoal/10 py-3 font-sans font-light text-charcoal placeholder-charcoal/30 focus:border-charcoal/20 focus:outline-none transition-colors" placeholder=" ">
+            <input type="text" id="app-role-company" name="company" required class="w-full bg-transparent border-b border-charcoal/10 py-3 font-sans font-light text-charcoal placeholder-charcoal/30 focus:border-charcoal/20 focus:outline-none transition-colors" placeholder=" ">
           </div>
           <div>
             <label for="app-objective" class="block font-sans font-light text-sm text-charcoal/70 mb-3">Primary Health Objective</label>
-            <textarea id="app-objective" name="objective" rows="3" class="w-full bg-transparent border border-charcoal/10 py-3 px-3 font-sans font-light text-charcoal placeholder-charcoal/30 focus:border-charcoal/20 focus:outline-none transition-colors resize-none" placeholder=" "></textarea>
+            <textarea id="app-objective" name="goal" rows="3" required class="w-full bg-transparent border border-charcoal/10 py-3 px-3 font-sans font-light text-charcoal placeholder-charcoal/30 focus:border-charcoal/20 focus:outline-none transition-colors resize-none" placeholder=" "></textarea>
           </div>
           <div class="pt-4">
             <button type="submit" class="w-full bg-charcoal text-white font-sans font-medium tracking-[0.15em] text-sm uppercase py-4 border border-charcoal hover:bg-charcoal/90 transition-colors cursor-pointer">
@@ -253,7 +254,33 @@
 
       form.addEventListener('submit', function (e) {
         e.preventDefault();
-        showThanks();
+        
+        var submitButton = form.querySelector('button[type="submit"]');
+        var originalText = submitButton.textContent;
+        submitButton.disabled = true;
+        submitButton.textContent = 'Submitting...';
+        
+        var formData = new FormData(form);
+        
+        fetch(form.action, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'Accept': 'application/json'
+          }
+        })
+        .then(function (response) {
+          if (response.ok) {
+            showThanks();
+          } else {
+            throw new Error('Submission failed');
+          }
+        })
+        .catch(function (error) {
+          submitButton.disabled = false;
+          submitButton.textContent = originalText;
+          alert('There was an error submitting your application. Please try again.');
+        });
       });
     })();
   </script>
