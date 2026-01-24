@@ -303,8 +303,8 @@
         fadeIn(directiveSection, 1400);
       }
 
-      fetch('bio-context.json')
-        .then(function(res) { return res.ok ? res.json() : Promise.reject(new Error('Failed to load bio-context')); })
+      fetch('friend1-context.json')
+        .then(function(res) { return res.ok ? res.json() : Promise.reject(new Error('Failed to load friend1-context')); })
         .then(function(data) {
           var memberEl = document.getElementById('member-name');
           var statusEl = document.getElementById('protocol-status');
