@@ -154,7 +154,7 @@
               </div>
               <div class="flex items-end justify-between">
                 <div>
-                  <div class="text-4xl font-light text-white tabular-nums mb-1">68</div>
+                  <div id="hrv-value" class="text-4xl font-light text-white tabular-nums mb-1">—</div>
                   <div class="text-white/40 text-xs font-light">ms</div>
                 </div>
                 <div class="flex-1 ml-6 h-12">
@@ -166,20 +166,20 @@
                 </div>
               </div>
               <div class="mt-4 pt-4 border-t border-white/10">
-                <span class="text-sage text-xs font-medium tracking-wide">Optimal Range</span>
+                <span id="hrv-status" class="text-sage text-xs font-medium tracking-wide">—</span>
               </div>
             </div>
 
-            <!-- Deep Sleep Card -->
+            <!-- Sleep Score Card -->
             <div class="glass rounded-xl p-6 card-hover">
               <div class="flex items-center justify-between mb-4">
-                <span class="text-white/40 text-xs font-medium tracking-widest uppercase">Deep Sleep</span>
+                <span class="text-white/40 text-xs font-medium tracking-widest uppercase">Sleep Score</span>
                 <span class="w-1.5 h-1.5 rounded-full bg-sage animate-pulse-subtle"></span>
               </div>
               <div class="flex items-end justify-between">
                 <div>
-                  <div class="text-4xl font-light text-white tabular-nums mb-1">2h 14m</div>
-                  <div class="text-white/40 text-xs font-light">last night</div>
+                  <div id="sleep-value" class="text-4xl font-light text-white tabular-nums mb-1">—</div>
+                  <div class="text-white/40 text-xs font-light">score</div>
                 </div>
                 <div class="flex-1 ml-6 h-12">
                   <svg viewBox="0 0 120 40" class="w-full h-full" preserveAspectRatio="none">
@@ -190,7 +190,7 @@
                 </div>
               </div>
               <div class="mt-4 pt-4 border-t border-white/10">
-                <span class="text-sage text-xs font-medium tracking-wide">Recovery Optimized</span>
+                <span id="sleep-status" class="text-sage text-xs font-medium tracking-wide">—</span>
               </div>
             </div>
 
@@ -266,23 +266,22 @@
       var directiveSection = document.getElementById('directive-section');
 
       /**
-       * Generates a personalized AI directive from focus_areas and supplement_stack.
-       * Direct-Action tone: imperative, clear, specific.
+       * Generates directive from biometrics (HRV rules) and optional supplement_stack.
+       * Direct-Action tone.
        */
-      function generateAIInstruction(focus_areas, supplement_stack) {
-        var focusStr = focus_areas && focus_areas.length
-          ? focus_areas.join(' and ')
-          : 'core longevity markers';
+      function generateAIInstruction(biometrics, supplement_stack) {
+        var hrv = biometrics && typeof biometrics.hrv === 'number' ? biometrics.hrv : null;
         var stackStr = supplement_stack && supplement_stack.length
-          ? supplement_stack.join(', ')
-          : 'current regimen';
-        var parts = [
-          'Execute Protocol Alpha. Prioritize ' + focusStr + '.',
-          'Maintain stack: ' + stackStr + '.',
-          'Today: Zone 2 cardiovascular load. HRV supports high neural readiness—proceed with full session.',
-          'Evening: +200mg magnesium; align with metabolic trend.'
-        ];
-        return parts.join(' ');
+          ? ' Maintain stack: ' + supplement_stack.join(', ') + '.'
+          : '';
+
+        if (hrv !== null && hrv < 50) {
+          return 'Recovery Focus: Switch to Zone 2 or Yoga. Increase Magnesium to 400mg tonight.' + stackStr;
+        }
+        if (hrv !== null && hrv > 70) {
+          return 'High Output: Neural readiness is peak. Proceed with High-Intensity training.' + stackStr;
+        }
+        return 'Maintain protocol. Proceed with moderate intensity. Keep current supplement stack.' + stackStr;
       }
 
       function fadeIn(element, delay) {
@@ -297,43 +296,73 @@
         [statusSection, insightSection, directiveSection].forEach(function(el) {
           el.style.transform = 'translateY(10px)';
         });
-
         fadeIn(statusSection, 600);
         fadeIn(insightSection, 1000);
         fadeIn(directiveSection, 1400);
       }
 
+      /**
+       * Load Chronos engine: read biometrics, apply HRV/Sleep logic, update UI.
+       */
+      function loadChronosEngine(data) {
+        var bio = data.biometrics || {};
+        var hrv = typeof bio.hrv === 'number' ? bio.hrv : null;
+        var sleepScore = typeof bio.sleep_score === 'number' ? bio.sleep_score : null;
+        var stack = data.supplement_stack || [];
+
+        var memberEl = document.getElementById('member-name');
+        var statusEl = document.getElementById('protocol-status');
+        var statusText = document.getElementById('status-text');
+        var insightText = document.getElementById('insight-text');
+        var directiveText = document.getElementById('directive-text');
+        var hrvValueEl = document.getElementById('hrv-value');
+        var hrvStatusEl = document.getElementById('hrv-status');
+        var sleepValueEl = document.getElementById('sleep-value');
+        var sleepStatusEl = document.getElementById('sleep-status');
+
+        if (memberEl) memberEl.textContent = data.member || '—';
+        if (statusEl) statusEl.textContent = data.current_regimen || 'Optimal';
+        if (statusText) statusText.textContent = (data.current_regimen || 'Protocol Alpha') + ' · Optimal Baseline';
+
+        if (hrvValueEl) hrvValueEl.textContent = hrv !== null ? String(hrv) : '—';
+        if (hrvStatusEl) {
+          if (hrv !== null && hrv < 50) hrvStatusEl.textContent = 'Recovery Focus';
+          else if (hrv !== null && hrv > 70) hrvStatusEl.textContent = 'High Output';
+          else hrvStatusEl.textContent = 'Optimal Range';
+        }
+
+        if (sleepValueEl) sleepValueEl.textContent = sleepScore !== null ? String(sleepScore) : '—';
+        if (sleepStatusEl) {
+          sleepStatusEl.textContent = sleepScore !== null && sleepScore < 70 ? 'Compromised' : 'Recovery Optimized';
+        }
+
+        var insightParts = [];
+        if (hrv !== null) {
+          insightParts.push('HRV (' + hrv + 'ms) ' + (hrv < 50 ? 'indicates recovery mode.' : hrv > 70 ? 'indicates peak neural readiness.' : 'indicates high neural readiness.'));
+        }
+        insightParts.push('Deep sleep recovery ' + (sleepScore !== null && sleepScore < 70 ? 'needs attention.' : 'is prioritized.'));
+        if (sleepScore !== null && sleepScore < 70) {
+          insightParts.push('Analysis: Sleep architecture compromised. Limit blue light after 8 PM.');
+        }
+        if (insightText) insightText.textContent = insightParts.join(' ');
+
+        var directive = generateAIInstruction(bio, stack);
+        if (directiveText) directiveText.textContent = directive;
+
+        initFromBioContext();
+      }
+
       fetch('friend1-context.json')
         .then(function(res) { return res.ok ? res.json() : Promise.reject(new Error('Failed to load friend1-context')); })
-        .then(function(data) {
-          var memberEl = document.getElementById('member-name');
-          var statusEl = document.getElementById('protocol-status');
-          var statusText = document.getElementById('status-text');
-          var insightText = document.getElementById('insight-text');
-          var directiveText = document.getElementById('directive-text');
-
-          if (memberEl) memberEl.textContent = data.member || '—';
-          if (statusEl) statusEl.textContent = data.current_regimen || 'Optimal';
-          if (statusText) statusText.textContent = (data.current_regimen || 'Protocol Alpha') + ' · Optimal Baseline';
-
-          var areas = data.focus_areas || [];
-          var stack = data.supplement_stack || [];
-          if (insightText) {
-            var areaPhrase = areas.length ? areas.join(' and ') + ' priorities aligned. ' : '';
-            insightText.textContent = areaPhrase + 'HRV (68ms) indicates high neural readiness. Deep sleep recovery is prioritized.';
-          }
-
-          var directive = generateAIInstruction(areas, stack);
-          if (directiveText) directiveText.textContent = directive;
-
-          initFromBioContext();
-        })
+        .then(loadChronosEngine)
         .catch(function(err) {
-          console.warn('Bio-context unavailable:', err);
-          document.getElementById('member-name').textContent = 'Santhosh';
-          document.getElementById('protocol-status').textContent = 'Optimal';
-          document.getElementById('directive-text').textContent = 'Execute Protocol Alpha. Focus: Zone 2 Cardiovascular Load. Maintain current supplement stack. Adjust evening magnesium +200mg based on metabolic trend.';
-          initFromBioContext();
+          console.warn('Friend1-context unavailable:', err);
+          loadChronosEngine({
+            member: 'Santhosh',
+            current_regimen: 'Optimal',
+            biometrics: { hrv: 68, sleep_score: 75 },
+            supplement_stack: []
+          });
         });
     })();
   </script>
