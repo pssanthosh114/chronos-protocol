@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chronos — Private Executive Access</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: {
+            carbon: '#0A0C10',
+            sage: '#B4E33D',
+          },
+          letterSpacing: { wide: '0.05em', wider: '0.1em', widest: '0.15em' },
+        },
+      },
+    }
+  </script>
+  <style>
+    .glass {
+      background: rgba(255, 255, 255, 0.02);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .input-focus:focus {
+      outline: none;
+      border-color: rgba(180, 227, 61, 0.5);
+      box-shadow: 0 0 0 1px rgba(180, 227, 61, 0.2);
+    }
+    @keyframes pulse-btn {
+      0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(180, 227, 61, 0.3); }
+      50% { opacity: 0.95; box-shadow: 0 0 20px 2px rgba(180, 227, 61, 0.15); }
+    }
+    .btn-pulse {
+      animation: pulse-btn 2.5s ease-in-out infinite;
+    }
+    .error-msg {
+      color: rgba(239, 68, 68, 0.95);
+      font-size: 0.8125rem;
+      font-weight: 400;
+      letter-spacing: 0.03em;
+    }
+  </style>
+</head>
+<body class="bg-carbon text-white font-sans antialiased min-h-screen flex items-center justify-center p-4 md:p-6" style="letter-spacing: 0.02em;">
+  <div class="w-full max-w-md">
+    <div class="glass rounded-2xl p-8 md:p-10 md:py-12 border border-white/10">
+      <!-- Header -->
+      <div class="text-center mb-10">
+        <div class="inline-flex flex-col items-center gap-3 mb-6">
+          <svg class="w-8 h-8 text-sage/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10" opacity="0.4" />
+            <path d="M12 6v6l4 2" />
+          </svg>
+          <span class="text-sage font-semibold tracking-[0.2em] text-sm">CHRONOS</span>
+        </div>
+        <p class="text-white/50 text-xs font-light tracking-widest uppercase">Private Executive Access</p>
+      </div>
+
+      <!-- Form -->
+      <form id="login-form" class="space-y-6">
+        <div>
+          <label for="email" class="block text-white/60 text-xs font-medium tracking-wider mb-2">Email</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            autocomplete="email"
+            required
+            placeholder="you@company.com"
+            class="input-focus w-full bg-transparent border border-white/10 rounded-lg py-3.5 px-4 text-white placeholder-white/30 font-light text-sm transition-colors duration-200"
+          />
+        </div>
+        <div>
+          <label for="password" class="block text-white/60 text-xs font-medium tracking-wider mb-2">Password</label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            autocomplete="current-password"
+            required
+            placeholder="••••••••"
+            class="input-focus w-full bg-transparent border border-white/10 rounded-lg py-3.5 px-4 text-white placeholder-white/30 font-light text-sm transition-colors duration-200"
+          />
+        </div>
+        <p id="login-error" class="error-msg hidden text-center py-2" role="alert"></p>
+        <button
+          type="submit"
+          id="verify-btn"
+          class="btn-pulse w-full bg-sage text-carbon font-medium tracking-widest text-sm uppercase py-4 rounded-lg border border-sage/50 hover:bg-sage/90 hover:border-sage transition-all duration-200 cursor-pointer"
+        >
+          Verify Identity
+        </button>
+      </form>
+
+      <p class="mt-8 text-center text-white/30 text-xs font-light tracking-wide">
+        By signing in, you agree to Chronos Protocol terms.
+      </p>
+    </div>
+  </div>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    (function () {
+      // Replace with your project URL and anon key
+      var SUPABASE_URL = 'https://your-project.supabase.co';
+      var SUPABASE_ANON_KEY = 'your-anon-key';
+
+      var supabase = window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY
+        ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+        : null;
+
+      var form = document.getElementById('login-form');
+      var verifyBtn = document.getElementById('verify-btn');
+      var errorEl = document.getElementById('login-error');
+
+      function showError(msg) {
+        if (!errorEl) return;
+        errorEl.textContent = msg;
+        errorEl.classList.remove('hidden');
+      }
+
+      function clearError() {
+        if (errorEl) {
+          errorEl.textContent = '';
+          errorEl.classList.add('hidden');
+        }
+      }
+
+      function setLoading(loading) {
+        verifyBtn.disabled = loading;
+        verifyBtn.textContent = loading ? 'Verifying…' : 'Verify Identity';
+      }
+
+      /**
+       * Handle login via Supabase auth.
+       * Success: redirect to dashboard.html.
+       * Error: show subtle red error message.
+       */
+      function handleLogin(email, password) {
+        clearError();
+        setLoading(true);
+
+        if (!supabase) {
+          setLoading(false);
+          showError('Supabase is not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY in login.html.');
+          return;
+        }
+
+        supabase.auth.signInWithPassword({ email: email, password: password })
+          .then(function (res) {
+            if (res.error) throw res.error;
+            window.location.href = 'dashboard.html';
+          })
+          .catch(function (err) {
+            setLoading(false);
+            showError(err && err.message ? err.message : 'Invalid email or password. Please try again.');
+          });
+      }
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var email = document.getElementById('email').value.trim();
+        var password = document.getElementById('password').value;
+        if (!email || !password) return;
+        handleLogin(email, password);
+      });
+
+      document.getElementById('email').addEventListener('input', clearError);
+      document.getElementById('password').addEventListener('input', clearError);
+    })();
+  </script>
+</body>
+</html>
