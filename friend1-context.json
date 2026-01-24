@@ -14,5 +14,17 @@
                         "apoB": "95 mg/dL", 
                         "fasting_glucose": "88 mg/dL",
                         "testosterone_total": "750 ng/dL"
-                        }
+                        },
+    "clinical_audit": {
+    "last_blood_panel": "2026-01-15",
+    "critical_markers": {
+    "Vitamin_D": {"value": 28, "unit": "ng/mL", "status": "Deficient"},
+    "ApoB": {"value": 105, "unit": "mg/dL", "status": "High Risk"},
+    "Cortisol_AM": {"value": 19, "unit": "mcg/dL", "status": "Elevated"}
+  },
+  "supplement_synergy_rules": [
+    {"target": "ApoB", "current_stack": ["Omega-3"], "recommendation": "Add Citrus Bergamot"},
+    {"target": "Cortisol", "current_stack": ["Caffeine"], "recommendation": "Reduce Caffeine after 11AM"}
+  ]
+}                    
   }

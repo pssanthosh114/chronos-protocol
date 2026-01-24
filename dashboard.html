@@ -110,6 +110,79 @@
     <!-- Main Dashboard -->
     <main class="max-w-[1600px] mx-auto px-6 md:px-10 py-10 md:py-16">
       <div class="space-y-10">
+        <!-- Cognitive Performance Forecast -->
+        <section class="glass rounded-2xl p-6 md:p-8 card-hover">
+          <h3 class="text-white/50 text-xs font-medium tracking-widest uppercase mb-6">Cognitive Performance Forecast</h3>
+          <p class="text-white/40 text-xs font-light mb-6">Readiness Score · 9 AM – 9 PM</p>
+          <div class="relative">
+            <svg class="w-full" viewBox="0 0 1000 140" preserveAspectRatio="none" style="height: 100px;">
+              <defs>
+                <linearGradient id="readinessGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" style="stop-color:#B4E33D;stop-opacity:0.5" />
+                  <stop offset="25%" style="stop-color:#B4E33D;stop-opacity:1" />
+                  <stop offset="50%" style="stop-color:#B4E33D;stop-opacity:0.6" />
+                  <stop offset="75%" style="stop-color:#B4E33D;stop-opacity:0.8" />
+                  <stop offset="100%" style="stop-color:#B4E33D;stop-opacity:0.4" />
+                </linearGradient>
+                <filter id="readiness-glow" x="-15%" y="-30%" width="130%" height="160%">
+                  <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+              <line x1="0" y1="120" x2="1000" y2="120" stroke="rgba(255,255,255,0.08)" stroke-width="1" />
+              <line x1="83" y1="0" x2="83" y2="120" stroke="rgba(180,227,61,0.15)" stroke-width="1" stroke-dasharray="2 2" />
+              <line x1="458" y1="0" x2="458" y2="120" stroke="rgba(245,158,11,0.15)" stroke-width="1" stroke-dasharray="2 2" />
+              <line x1="833" y1="0" x2="833" y2="120" stroke="rgba(255,255,255,0.12)" stroke-width="1" stroke-dasharray="2 2" />
+              <g filter="url(#readiness-glow)">
+                <path d="M0 85 Q83 18 166 25 T333 45 T500 95 T667 50 T833 55 T1000 100 L1000 120 L0 120 Z" fill="url(#readinessGradient)" opacity="0.2" />
+                <path d="M0 85 Q83 18 166 25 T333 45 T500 95 T667 50 T833 55 T1000 100" fill="none" stroke="url(#readinessGradient)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+              </g>
+            </svg>
+            <div class="flex justify-between mt-2 px-0 text-[10px] text-white/35 font-light tabular-nums">
+              <span>9 AM</span>
+              <span>12 PM</span>
+              <span>3 PM</span>
+              <span>6 PM</span>
+              <span>9 PM</span>
+            </div>
+          </div>
+          <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-4">
+            <div class="flex gap-4 md:block">
+              <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 shrink-0">
+                <span class="w-2 h-2 rounded-full bg-sage shrink-0 mt-1.5 md:mt-0" style="box-shadow: 0 0 8px rgba(180,227,61,0.6);"></span>
+                <div>
+                  <p class="text-white/90 text-sm font-medium">10:00 AM</p>
+                  <p class="text-sage text-xs font-medium tracking-wide">Peak Executive Function</p>
+                  <p class="text-white/40 text-xs font-light">High Focus</p>
+                </div>
+              </div>
+            </div>
+            <div class="flex gap-4 md:block">
+              <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 shrink-0">
+                <span class="w-2 h-2 rounded-full bg-amber shrink-0 mt-1.5 md:mt-0" style="box-shadow: 0 0 8px rgba(245,158,11,0.5);"></span>
+                <div>
+                  <p class="text-white/90 text-sm font-medium">2:30 PM</p>
+                  <p class="text-amber text-xs font-medium tracking-wide">Metabolic Dip</p>
+                  <p class="text-white/40 text-xs font-light">Schedule Low-Cognitive Tasks</p>
+                </div>
+              </div>
+            </div>
+            <div class="flex gap-4 md:block">
+              <div class="flex flex-col md:flex-row md:items-center gap-1 md:gap-3 shrink-0">
+                <span class="w-2 h-2 rounded-full bg-white/50 shrink-0 mt-1.5 md:mt-0" style="box-shadow: 0 0 6px rgba(255,255,255,0.3);"></span>
+                <div>
+                  <p class="text-white/90 text-sm font-medium">7:00 PM</p>
+                  <p class="text-white/60 text-xs font-medium tracking-wide">Cortisol Clearance</p>
+                  <p class="text-white/40 text-xs font-light">Begin Wind-down</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- Primary Metric Card - Biological Age with Line Chart -->
         <section>
           <div class="glass rounded-2xl p-8 md:p-12 card-hover">
@@ -353,8 +426,42 @@
             </div>
           </div>
         </section>
+
+        <!-- Clinical Audit (Quiet UI) -->
+        <section class="pt-4">
+          <h3 class="text-white/40 text-xs font-medium tracking-widest uppercase mb-8">Clinical Audit</h3>
+          <p id="clinical-audit-meta" class="text-white/30 text-xs font-light mb-6"></p>
+          <div id="clinical-conflicts" class="space-y-4 mb-10"></div>
+          <button type="button" id="review-stack-btn" class="text-sage text-xs font-medium tracking-wider uppercase hover:text-sage/80 transition-colors cursor-pointer">
+            Review My Stack
+          </button>
+        </section>
       </div>
     </main>
+  </div>
+
+  <!-- Review My Stack overlay -->
+  <div id="stack-review-overlay" class="fixed inset-0 z-[200] hidden flex items-center justify-center p-4 md:p-8 bg-carbon/90 backdrop-blur-sm" aria-hidden="true">
+    <div class="w-full max-w-md rounded-xl border border-white/10 bg-carbon/95 p-8 md:p-10 shadow-2xl" onclick="event.stopPropagation()">
+      <div class="flex items-center justify-between mb-8">
+        <h4 class="text-white/60 text-xs font-medium tracking-widest uppercase">Stack Review</h4>
+        <button type="button" id="stack-overlay-close" class="w-8 h-8 flex items-center justify-center text-white/40 hover:text-white text-xl leading-none transition-colors cursor-pointer" aria-label="Close">&times;</button>
+      </div>
+      <div class="space-y-8">
+        <div>
+          <p class="text-sage text-[10px] font-medium tracking-widest uppercase mb-3">Keep</p>
+          <ul id="stack-keep" class="text-[#E5E7EB] text-sm font-light leading-relaxed space-y-1.5"></ul>
+        </div>
+        <div>
+          <p class="text-amber text-[10px] font-medium tracking-widest uppercase mb-3">Drop</p>
+          <ul id="stack-drop" class="text-[#E5E7EB] text-sm font-light leading-relaxed space-y-1.5"></ul>
+        </div>
+        <div>
+          <p class="text-sage text-[10px] font-medium tracking-widest uppercase mb-3">Add</p>
+          <ul id="stack-add" class="text-[#E5E7EB] text-sm font-light leading-relaxed space-y-1.5"></ul>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -377,6 +484,7 @@
       var statusSection = document.getElementById('status-section');
       var insightSection = document.getElementById('insight-section');
       var directiveSection = document.getElementById('directive-section');
+      var lastAuditResult = { conflicts: [], keep: [], drop: [], add: [] };
 
       /**
        * Parse numeric value from clinical strings like "95 mg/dL" or "88 mg/dL".
@@ -407,6 +515,93 @@
           return 'Neural readiness and metabolic reserve are aligned. Sustained high output likely for the next 8–10 hours. Proceed with full protocol.';
         }
         return 'Insufficient biomarker data for a confident prediction. Maintain baseline protocol and prioritize sleep tonight.';
+      }
+
+      /**
+       * runSupplementAudit: compare critical_markers to supplement_stack.
+       * Returns { conflicts: string[], keep: string[], drop: string[], add: string[] }.
+       */
+      function runSupplementAudit(critical_markers, supplement_stack, synergy_rules) {
+        var conflicts = [];
+        var keep = [];
+        var drop = [];
+        var add = [];
+        var names = supplementNames(supplement_stack);
+        var stackLower = names.map(function(n) { return n.toLowerCase(); });
+
+        function hasMatch(keyword) {
+          for (var hi = 0; hi < stackLower.length; hi++) {
+            if (stackLower[hi].indexOf(keyword) >= 0) return true;
+          }
+          return false;
+        }
+        function findDoseIU(namePart) {
+          var idx = -1;
+          for (var fi = 0; fi < stackLower.length; fi++) {
+            if (stackLower[fi].indexOf(namePart) >= 0) { idx = fi; break; }
+          }
+          var n = idx >= 0 ? names[idx] : null;
+          if (!n) return null;
+          var m = n.match(/(\d{1,4})\s*IU/i) || n.match(/(\d{1,4})IU/i);
+          return m ? parseInt(m[1], 10) : null;
+        }
+
+        var markers = critical_markers || {};
+        var rules = synergy_rules || [];
+
+        var dropLowD3 = null;
+        if (markers.Vitamin_D && markers.Vitamin_D.status === 'Deficient') {
+          var d3 = findDoseIU('vitamin d') || findDoseIU('d3') || findDoseIU('vitamin d3');
+          if (d3 != null && d3 <= 1000) {
+            conflicts.push('Ineffective Dosage Detected: Increase Vitamin D3 to 5,000IU + K2 for 30 days.');
+            add.push('Vitamin D3 5,000IU + K2 (30 days)');
+            for (var di = 0; di < stackLower.length; di++) {
+              if (stackLower[di].indexOf('vitamin d') >= 0 || stackLower[di].indexOf('d3') >= 0) {
+                dropLowD3 = names[di];
+                break;
+              }
+            }
+          } else if (!hasMatch('vitamin d') && !hasMatch('d3')) {
+            add.push('Vitamin D3 5,000IU + K2 (30 days)');
+          }
+        }
+
+        if (markers.ApoB && (markers.ApoB.status === 'High Risk' || markers.ApoB.status === 'Elevated')) {
+          var apoRule = null;
+          for (var i = 0; i < rules.length; i++) {
+            if ((rules[i].target || '').toLowerCase().indexOf('apo') >= 0) { apoRule = rules[i]; break; }
+          }
+          if (apoRule && apoRule.recommendation) add.push(apoRule.recommendation.replace(/^Add\s+/i, '').trim());
+          else add.push('Citrus Bergamot');
+        }
+
+        if (markers.Cortisol_AM && (markers.Cortisol_AM.status === 'Elevated' || markers.Cortisol_AM.status === 'High')) {
+          var cortRule = null;
+          for (var j = 0; j < rules.length; j++) {
+            if ((rules[j].target || '').toLowerCase().indexOf('cortisol') >= 0) { cortRule = rules[j]; break; }
+          }
+          if (cortRule && cortRule.recommendation) {
+            var rec = cortRule.recommendation;
+            if (/reduce|drop|caffeine/i.test(rec) && hasMatch('caffeine')) {
+              drop.push('Caffeine after 11 AM');
+              conflicts.push(rec);
+            }
+          }
+        }
+
+        names.forEach(function(n) {
+          var lower = n.toLowerCase();
+          if (lower.indexOf('caffeine') >= 0 && drop.indexOf('Caffeine after 11 AM') >= 0) return;
+          if (dropLowD3 && n === dropLowD3) { drop.push(n); return; }
+          var conflicted = false;
+          if (markers.Vitamin_D && markers.Vitamin_D.status === 'Deficient' && (lower.indexOf('vitamin d') >= 0 || lower.indexOf('d3') >= 0)) {
+            var iu = findDoseIU('vitamin d') || findDoseIU('d3');
+            if (iu != null && iu <= 1000) conflicted = true;
+          }
+          if (!conflicted) keep.push(n);
+        });
+
+        return { conflicts: conflicts, keep: keep, drop: drop, add: add };
       }
 
       /**
@@ -591,9 +786,95 @@
         var narrativeEl = document.getElementById('predictive-narrative');
         if (narrativeEl) narrativeEl.textContent = narrative;
 
+        var audit = data.clinical_audit || {};
+        var critical = audit.critical_markers || {};
+        var synergy = audit.supplement_synergy_rules || [];
+        lastAuditResult = runSupplementAudit(critical, stack, synergy);
+        var metaEl = document.getElementById('clinical-audit-meta');
+        if (metaEl) metaEl.textContent = audit.last_blood_panel ? 'Last blood panel: ' + audit.last_blood_panel : '';
+        var conflictsEl = document.getElementById('clinical-conflicts');
+        if (conflictsEl) {
+          conflictsEl.innerHTML = '';
+          if (lastAuditResult.conflicts.length) {
+            lastAuditResult.conflicts.forEach(function(msg) {
+              var p = document.createElement('p');
+              p.className = 'text-[#E5E7EB] text-sm font-light leading-relaxed';
+              p.textContent = msg;
+              conflictsEl.appendChild(p);
+            });
+          } else {
+            var p = document.createElement('p');
+            p.className = 'text-white/40 text-sm font-light';
+            p.textContent = 'No clinical conflicts detected.';
+            conflictsEl.appendChild(p);
+          }
+        }
+
         renderProtocolExecution(stack);
         initFromBioContext();
       }
+
+      (function initStackReviewOverlay() {
+        var overlay = document.getElementById('stack-review-overlay');
+        var btn = document.getElementById('review-stack-btn');
+        var closeBtn = document.getElementById('stack-overlay-close');
+        var keepEl = document.getElementById('stack-keep');
+        var dropEl = document.getElementById('stack-drop');
+        var addEl = document.getElementById('stack-add');
+
+        function showOverlay() {
+          if (!overlay || !keepEl || !dropEl || !addEl) return;
+          keepEl.innerHTML = '';
+          dropEl.innerHTML = '';
+          addEl.innerHTML = '';
+          lastAuditResult.keep.forEach(function(x) {
+            var li = document.createElement('li');
+            li.textContent = x;
+            keepEl.appendChild(li);
+          });
+          lastAuditResult.drop.forEach(function(x) {
+            var li = document.createElement('li');
+            li.textContent = x;
+            dropEl.appendChild(li);
+          });
+          lastAuditResult.add.forEach(function(x) {
+            var li = document.createElement('li');
+            li.textContent = x;
+            addEl.appendChild(li);
+          });
+          if (lastAuditResult.keep.length === 0) {
+            var li = document.createElement('li');
+            li.className = 'text-white/40';
+            li.textContent = '—';
+            keepEl.appendChild(li);
+          }
+          if (lastAuditResult.drop.length === 0) {
+            var li = document.createElement('li');
+            li.className = 'text-white/40';
+            li.textContent = '—';
+            dropEl.appendChild(li);
+          }
+          if (lastAuditResult.add.length === 0) {
+            var li = document.createElement('li');
+            li.className = 'text-white/40';
+            li.textContent = '—';
+            addEl.appendChild(li);
+          }
+          overlay.classList.remove('hidden');
+          overlay.classList.add('flex');
+        }
+
+        function hideOverlay() {
+          if (overlay) {
+            overlay.classList.add('hidden');
+            overlay.classList.remove('flex');
+          }
+        }
+
+        if (btn) btn.addEventListener('click', showOverlay);
+        if (closeBtn) closeBtn.addEventListener('click', hideOverlay);
+        if (overlay) overlay.addEventListener('click', function(e) { if (e.target === overlay) hideOverlay(); });
+      })();
 
       fetch('friend1-context.json')
         .then(function(res) { return res.ok ? res.json() : Promise.reject(new Error('Failed to load friend1-context')); })
@@ -604,7 +885,8 @@
             member: 'Santhosh',
             current_regimen: 'Optimal',
             biometrics: { hrv: 68, sleep_score: 75 },
-            supplement_stack: []
+            supplement_stack: [],
+            clinical_audit: {}
           });
         });
     })();
