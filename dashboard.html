@@ -34,6 +34,9 @@
       0%, 100% { opacity: 1; }
       50% { opacity: 0.7; }
     }
+    .animate-pulse-subtle {
+      animation: pulse-subtle 1.5s ease-in-out infinite;
+    }
     @keyframes lift {
       from { transform: translateY(0); }
       to { transform: translateY(-4px); }
@@ -67,8 +70,8 @@
       <div class="max-w-[1600px] mx-auto px-6 md:px-10 py-4">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-8">
-            <span class="text-white/60 text-xs font-medium tracking-wider">Member: <span class="text-white">Santhosh</span></span>
-            <span class="text-white/60 text-xs font-medium tracking-wider">Protocol Status: <span class="text-sage">Optimal</span></span>
+            <span class="text-white/60 text-xs font-medium tracking-wider">Member: <span id="member-name" class="text-white">—</span></span>
+            <span class="text-white/60 text-xs font-medium tracking-wider">Protocol Status: <span id="protocol-status" class="text-sage">—</span></span>
           </div>
           <div class="text-xs text-white/40 tracking-widest font-light">CHRONOS</div>
         </div>
@@ -230,7 +233,7 @@
                     <span class="text-white/60 text-xs font-medium tracking-widest uppercase">STATUS:</span>
                     <span class="w-2 h-2 rounded-full bg-sage animate-pulse-subtle"></span>
                   </div>
-                  <p class="text-[#E5E7EB] text-base font-light leading-relaxed ml-0">Optimal Baseline</p>
+                  <p id="status-text" class="text-[#E5E7EB] text-base font-light leading-relaxed ml-0">Optimal Baseline</p>
                 </div>
 
                 <!-- INSIGHT -->
@@ -238,7 +241,7 @@
                   <div class="mb-1">
                     <span class="text-white/60 text-xs font-medium tracking-widest uppercase">INSIGHT:</span>
                   </div>
-                  <p class="text-[#E5E7EB] text-base font-light leading-relaxed ml-0">HRV (68ms) indicates high neural readiness. Deep sleep recovery is prioritized.</p>
+                  <p id="insight-text" class="text-[#E5E7EB] text-base font-light leading-relaxed ml-0">HRV (68ms) indicates high neural readiness. Deep sleep recovery is prioritized.</p>
                 </div>
 
                 <!-- DIRECTIVE -->
@@ -246,7 +249,7 @@
                   <div class="mb-1">
                     <span class="text-white/60 text-xs font-medium tracking-widest uppercase">DIRECTIVE:</span>
                   </div>
-                  <p class="text-sage text-base font-light leading-relaxed ml-0">Execute Protocol Alpha. Focus: Zone 2 Cardiovascular Load. Adjust evening magnesium intake to +200mg based on metabolic trend.</p>
+                  <p id="directive-text" class="text-sage text-base font-light leading-relaxed ml-0"></p>
                 </div>
               </div>
             </div>
@@ -258,11 +261,30 @@
 
   <script>
     (function() {
-      // Smooth fade-in animation for consultation sections
       var statusSection = document.getElementById('status-section');
       var insightSection = document.getElementById('insight-section');
       var directiveSection = document.getElementById('directive-section');
-      
+
+      /**
+       * Generates a personalized AI directive from focus_areas and supplement_stack.
+       * Direct-Action tone: imperative, clear, specific.
+       */
+      function generateAIInstruction(focus_areas, supplement_stack) {
+        var focusStr = focus_areas && focus_areas.length
+          ? focus_areas.join(' and ')
+          : 'core longevity markers';
+        var stackStr = supplement_stack && supplement_stack.length
+          ? supplement_stack.join(', ')
+          : 'current regimen';
+        var parts = [
+          'Execute Protocol Alpha. Prioritize ' + focusStr + '.',
+          'Maintain stack: ' + stackStr + '.',
+          'Today: Zone 2 cardiovascular load. HRV supports high neural readiness—proceed with full session.',
+          'Evening: +200mg magnesium; align with metabolic trend.'
+        ];
+        return parts.join(' ');
+      }
+
       function fadeIn(element, delay) {
         setTimeout(function() {
           element.style.transition = 'opacity 0.8s ease-out, transform 0.8s ease-out';
@@ -270,16 +292,49 @@
           element.style.transform = 'translateY(0)';
         }, delay);
       }
-      
-      // Initialize elements with slight offset for smooth entrance
-      [statusSection, insightSection, directiveSection].forEach(function(el) {
-        el.style.transform = 'translateY(10px)';
-      });
-      
-      // Fade in sections sequentially for elegant consultation appearance
-      fadeIn(statusSection, 600);
-      fadeIn(insightSection, 1000);
-      fadeIn(directiveSection, 1400);
+
+      function initFromBioContext() {
+        [statusSection, insightSection, directiveSection].forEach(function(el) {
+          el.style.transform = 'translateY(10px)';
+        });
+
+        fadeIn(statusSection, 600);
+        fadeIn(insightSection, 1000);
+        fadeIn(directiveSection, 1400);
+      }
+
+      fetch('bio-context.json')
+        .then(function(res) { return res.ok ? res.json() : Promise.reject(new Error('Failed to load bio-context')); })
+        .then(function(data) {
+          var memberEl = document.getElementById('member-name');
+          var statusEl = document.getElementById('protocol-status');
+          var statusText = document.getElementById('status-text');
+          var insightText = document.getElementById('insight-text');
+          var directiveText = document.getElementById('directive-text');
+
+          if (memberEl) memberEl.textContent = data.member || '—';
+          if (statusEl) statusEl.textContent = data.current_regimen || 'Optimal';
+          if (statusText) statusText.textContent = (data.current_regimen || 'Protocol Alpha') + ' · Optimal Baseline';
+
+          var areas = data.focus_areas || [];
+          var stack = data.supplement_stack || [];
+          if (insightText) {
+            var areaPhrase = areas.length ? areas.join(' and ') + ' priorities aligned. ' : '';
+            insightText.textContent = areaPhrase + 'HRV (68ms) indicates high neural readiness. Deep sleep recovery is prioritized.';
+          }
+
+          var directive = generateAIInstruction(areas, stack);
+          if (directiveText) directiveText.textContent = directive;
+
+          initFromBioContext();
+        })
+        .catch(function(err) {
+          console.warn('Bio-context unavailable:', err);
+          document.getElementById('member-name').textContent = 'Santhosh';
+          document.getElementById('protocol-status').textContent = 'Optimal';
+          document.getElementById('directive-text').textContent = 'Execute Protocol Alpha. Focus: Zone 2 Cardiovascular Load. Maintain current supplement stack. Adjust evening magnesium +200mg based on metabolic trend.';
+          initFromBioContext();
+        });
     })();
   </script>
 </body>
