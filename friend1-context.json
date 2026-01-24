@@ -6,5 +6,9 @@
       "resting_heart_rate": 65
     },
     "current_regimen": "Protocol Beta",
-    "supplement_stack": ["NMN 500mg", "TMG 500mg", "Omega-3", "Vitamin D3", "Vitamin B12"]
+    "supplement_stack": [
+    {"name": "NMN 500mg", "status": "pending", "time": "Morning"},
+    {"name": "TMG 500mg", "status": "completed", "time": "Morning"},
+    {"name": "Magnesium L-Threonate", "status": "pending", "time": "Evening"}
+]
   }

@@ -61,6 +61,35 @@
       stroke-linecap: round;
       stroke-linejoin: round;
     }
+    .protocol-checkbox {
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border: 1.5px solid rgba(180, 227, 61, 0.4);
+      border-radius: 4px;
+      background: transparent;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+    }
+    .protocol-checkbox:hover {
+      border-color: #B4E33D;
+      background: rgba(180, 227, 61, 0.08);
+    }
+    .protocol-checkbox:checked {
+      background: #B4E33D url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230A0C10' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5L20 7'/%3E%3C/svg%3E") center / 12px no-repeat;
+      border-color: #B4E33D;
+    }
+    .protocol-item .protocol-label {
+      transition: color 0.2s ease, text-decoration 0.2s ease;
+    }
+    .protocol-item.checked .protocol-label {
+      text-decoration: line-through;
+      color: #B4E33D;
+    }
+    #compliance-ring {
+      transition: stroke-dashoffset 0.4s ease;
+    }
   </style>
 </head>
 <body class="bg-carbon text-white font-sans antialiased min-h-screen" style="letter-spacing: 0.02em;">
@@ -255,6 +284,24 @@
             </div>
           </div>
         </section>
+
+        <!-- Daily Protocol Execution -->
+        <section class="relative">
+          <div class="glass rounded-2xl p-8 md:p-10 card-hover">
+            <div class="absolute top-6 right-6 md:top-8 md:right-8" aria-hidden="true">
+              <div class="relative w-14 h-14">
+                <svg class="w-14 h-14 -rotate-90" viewBox="0 0 36 36">
+                  <path class="text-white/10" stroke="currentColor" stroke-width="2.5" fill="none" d="M18 2.5 a 15.5 15.5 0 0 1 0 31 a 15.5 15.5 0 0 1 0 -31" />
+                  <path id="compliance-ring" class="text-sage" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" fill="none" stroke-dasharray="97.4" stroke-dashoffset="97.4" d="M18 2.5 a 15.5 15.5 0 0 1 0 31 a 15.5 15.5 0 0 1 0 -31" />
+                </svg>
+                <span id="compliance-text" class="absolute inset-0 flex items-center justify-center text-[10px] font-medium text-white/80 tabular-nums">0/0</span>
+              </div>
+            </div>
+            <h3 class="text-white/50 text-xs font-medium tracking-widest uppercase mb-6 pr-16">Daily Protocol Execution</h3>
+            <ul id="protocol-list" class="space-y-4"></ul>
+            <p id="protocol-empty-state" class="hidden mt-6 text-sage/80 text-sm font-light tracking-wide">Protocol Fully Executed. Biological Optimization Peak.</p>
+          </div>
+        </section>
       </div>
     </main>
   </div>
@@ -266,14 +313,23 @@
       var directiveSection = document.getElementById('directive-section');
 
       /**
+       * Extracts display names from supplement_stack (objects or strings).
+       */
+      function supplementNames(stack) {
+        if (!stack || !stack.length) return [];
+        return stack.map(function(item) {
+          return typeof item === 'string' ? item : (item.name || '');
+        }).filter(Boolean);
+      }
+
+      /**
        * Generates directive from biometrics (HRV rules) and optional supplement_stack.
        * Direct-Action tone.
        */
       function generateAIInstruction(biometrics, supplement_stack) {
         var hrv = biometrics && typeof biometrics.hrv === 'number' ? biometrics.hrv : null;
-        var stackStr = supplement_stack && supplement_stack.length
-          ? ' Maintain stack: ' + supplement_stack.join(', ') + '.'
-          : '';
+        var names = supplementNames(supplement_stack);
+        var stackStr = names.length ? ' Maintain stack: ' + names.join(', ') + '.' : '';
 
         if (hrv !== null && hrv < 50) {
           return 'Recovery Focus: Switch to Zone 2 or Yoga. Increase Magnesium to 400mg tonight.' + stackStr;
@@ -299,6 +355,90 @@
         fadeIn(statusSection, 600);
         fadeIn(insightSection, 1000);
         fadeIn(directiveSection, 1400);
+      }
+
+      /**
+       * Normalize supplement_stack to { name, time?, completed }.
+       * Supports both [{"name","status","time"}] and ["NMN 500mg", ...].
+       */
+      function normalizeSupplementStack(raw) {
+        if (!raw || !raw.length) return [];
+        return raw.map(function(item, i) {
+          if (typeof item === 'string') {
+            return { id: i, name: item, time: '', completed: false };
+          }
+          var name = item.name || ('Supplement ' + (i + 1));
+          var completed = item.status === 'completed';
+          return { id: i, name: name, time: item.time || '', completed: completed };
+        });
+      }
+
+      /**
+       * Render Daily Protocol Execution list, wire checkboxes, compliance ring, empty state.
+       */
+      function renderProtocolExecution(stack) {
+        var listEl = document.getElementById('protocol-list');
+        var emptyEl = document.getElementById('protocol-empty-state');
+        var ringEl = document.getElementById('compliance-ring');
+        var textEl = document.getElementById('compliance-text');
+        if (!listEl) return;
+
+        var items = normalizeSupplementStack(stack);
+        listEl.innerHTML = '';
+
+        function updateCompliance() {
+          var completed = items.filter(function(x) { return x.completed; }).length;
+          var total = items.length;
+          var pct = total ? Math.round((completed / total) * 100) : 0;
+          var circumference = 97.4;
+          var offset = circumference - (pct / 100) * circumference;
+          if (ringEl) {
+            ringEl.setAttribute('stroke-dasharray', circumference);
+            ringEl.setAttribute('stroke-dashoffset', offset);
+          }
+          if (textEl) textEl.textContent = completed + '/' + total;
+          if (emptyEl) {
+            emptyEl.classList.toggle('hidden', !(total && completed === total));
+          }
+        }
+
+        items.forEach(function(item) {
+          var li = document.createElement('li');
+          li.className = 'protocol-item flex items-center gap-3' + (item.completed ? ' checked' : '');
+          li.dataset.id = item.id;
+
+          var label = document.createElement('label');
+          label.className = 'flex items-center gap-3 cursor-pointer flex-1';
+
+          var cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.className = 'protocol-checkbox';
+          cb.checked = item.completed;
+
+          var span = document.createElement('span');
+          span.className = 'protocol-label text-white/90 font-light';
+          span.textContent = item.name;
+
+          label.appendChild(cb);
+          label.appendChild(span);
+          if (item.time) {
+            var timeSpan = document.createElement('span');
+            timeSpan.className = 'text-white/40 text-xs font-light';
+            timeSpan.textContent = item.time;
+            label.appendChild(timeSpan);
+          }
+          li.appendChild(label);
+
+          cb.addEventListener('change', function() {
+            item.completed = cb.checked;
+            li.classList.toggle('checked', cb.checked);
+            updateCompliance();
+          });
+
+          listEl.appendChild(li);
+        });
+
+        updateCompliance();
       }
 
       /**
@@ -349,6 +489,7 @@
         var directive = generateAIInstruction(bio, stack);
         if (directiveText) directiveText.textContent = directive;
 
+        renderProtocolExecution(stack);
         initFromBioContext();
       }
 
