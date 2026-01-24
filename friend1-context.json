@@ -9,6 +9,10 @@
     "supplement_stack": [
     {"name": "NMN 500mg", "status": "pending", "time": "Morning"},
     {"name": "TMG 500mg", "status": "completed", "time": "Morning"},
-    {"name": "Magnesium L-Threonate", "status": "pending", "time": "Evening"}
-]
+    {"name": "Magnesium L-Threonate", "status": "pending", "time": "Evening"} ],
+    "clinical_markers": {
+                        "apoB": "95 mg/dL", 
+                        "fasting_glucose": "88 mg/dL",
+                        "testosterone_total": "750 ng/dL"
+                        }
   }

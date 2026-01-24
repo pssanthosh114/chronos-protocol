@@ -302,6 +302,57 @@
             <p id="protocol-empty-state" class="hidden mt-6 text-sage/80 text-sm font-light tracking-wide">Protocol Fully Executed. Biological Optimization Peak.</p>
           </div>
         </section>
+
+        <!-- Predictive Performance -->
+        <section>
+          <div class="glass rounded-2xl p-8 md:p-10 card-hover">
+            <h3 class="text-white/50 text-xs font-medium tracking-widest uppercase mb-6">Predictive Performance</h3>
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-10">
+              <div class="md:col-span-4">
+                <div class="relative flex flex-col">
+                  <div class="absolute left-[11px] top-2 bottom-2 w-px bg-white/10" aria-hidden="true"></div>
+                  <div id="predictive-timeline" class="relative flex flex-col gap-0">
+                    <div class="flex items-center gap-4 py-1.5">
+                      <span class="w-6 h-6 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-[10px] font-medium text-white/70 tabular-nums shrink-0">6a</span>
+                      <span class="text-white/40 text-xs font-light">6:00 AM</span>
+                    </div>
+                    <div class="flex items-center gap-4 py-1.5">
+                      <span class="w-6 h-6 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-[10px] font-medium text-white/70 tabular-nums shrink-0">8a</span>
+                      <span class="text-white/40 text-xs font-light">8:00 AM</span>
+                    </div>
+                    <div class="flex items-center gap-4 py-1.5">
+                      <span class="w-6 h-6 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-[10px] font-medium text-white/70 tabular-nums shrink-0">10a</span>
+                      <span class="text-white/40 text-xs font-light">10:00 AM</span>
+                    </div>
+                    <div class="flex items-center gap-4 py-1.5">
+                      <span class="w-6 h-6 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-[10px] font-medium text-white/70 tabular-nums shrink-0">12p</span>
+                      <span class="text-white/40 text-xs font-light">12:00 PM</span>
+                    </div>
+                    <div class="flex items-center gap-4 py-1.5">
+                      <span class="w-6 h-6 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-[10px] font-medium text-white/70 tabular-nums shrink-0">2p</span>
+                      <span class="text-white/40 text-xs font-light">2:00 PM</span>
+                    </div>
+                    <div class="flex items-center gap-4 py-1.5">
+                      <span id="timeline-crash" class="w-6 h-6 rounded-full bg-amber/20 border border-amber/50 flex items-center justify-center text-[10px] font-medium text-amber tabular-nums shrink-0" title="Predicted crash">3p</span>
+                      <span class="text-amber/80 text-xs font-light">3:00 PM — predicted crash</span>
+                    </div>
+                    <div class="flex items-center gap-4 py-1.5">
+                      <span class="w-6 h-6 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-[10px] font-medium text-white/70 tabular-nums shrink-0">4p</span>
+                      <span class="text-white/40 text-xs font-light">4:00 PM</span>
+                    </div>
+                    <div class="flex items-center gap-4 py-1.5">
+                      <span class="w-6 h-6 rounded-full bg-white/10 border border-white/20 flex items-center justify-center text-[10px] font-medium text-white/70 tabular-nums shrink-0">6p</span>
+                      <span class="text-white/40 text-xs font-light">6:00 PM</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="md:col-span-8 flex flex-col justify-center">
+                <p id="predictive-narrative" class="text-[#E5E7EB] text-base md:text-lg font-light leading-relaxed"></p>
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     </main>
   </div>
@@ -326,6 +377,37 @@
       var statusSection = document.getElementById('status-section');
       var insightSection = document.getElementById('insight-section');
       var directiveSection = document.getElementById('directive-section');
+
+      /**
+       * Parse numeric value from clinical strings like "95 mg/dL" or "88 mg/dL".
+       */
+      function parseNumeric(s) {
+        if (s == null) return null;
+        var str = typeof s === 'string' ? s : String(s);
+        var m = str.match(/[\d.]+/);
+        return m ? parseFloat(m[0]) : null;
+      }
+
+      /**
+       * Predictive Performance narrative from HRV (wearable), apoB (bloodwork), blood glucose.
+       * HRV low + glucose stable → 4‑hour window, crash at 3 PM.
+       */
+      function predictivePerformanceNarrative(hrv, apoB, bloodGlucose) {
+        var hrvLow = hrv != null && hrv < 50;
+        var glucose = parseNumeric(bloodGlucose);
+        var glucoseStable = glucose != null && glucose >= 70 && glucose <= 100;
+
+        if (hrvLow && glucoseStable) {
+          return 'Physiological strain detected, but metabolic reserve is high. You have a 4-hour window of high cognitive output before a predicted crash at 3:00 PM. Schedule your hardest task NOW.';
+        }
+        if (hrvLow && !glucoseStable) {
+          return 'Physiological strain and metabolic stress detected. Prioritize recovery: light movement, hydration, and avoid high cognitive load until biomarkers improve.';
+        }
+        if (!hrvLow && glucoseStable) {
+          return 'Neural readiness and metabolic reserve are aligned. Sustained high output likely for the next 8–10 hours. Proceed with full protocol.';
+        }
+        return 'Insufficient biomarker data for a confident prediction. Maintain baseline protocol and prioritize sleep tonight.';
+      }
 
       /**
        * Extracts display names from supplement_stack (objects or strings).
@@ -503,6 +585,11 @@
 
         var directive = generateAIInstruction(bio, stack);
         if (directiveText) directiveText.textContent = directive;
+
+        var clinical = data.clinical_markers || {};
+        var narrative = predictivePerformanceNarrative(hrv, clinical.apoB, clinical.fasting_glucose);
+        var narrativeEl = document.getElementById('predictive-narrative');
+        if (narrativeEl) narrativeEl.textContent = narrative;
 
         renderProtocolExecution(stack);
         initFromBioContext();
