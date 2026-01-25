@@ -385,6 +385,22 @@
                   <p id="insight-text" class="text-[#E5E7EB] text-base font-light leading-relaxed ml-0">HRV (68ms) indicates high neural readiness. Deep sleep recovery is prioritized.</p>
                 </div>
 
+                <!-- PROTOCOL MODIFICATION (calendar-driven) -->
+                <div id="protocol-mod-section" class="opacity-0 hidden">
+                  <div class="mb-1">
+                    <span class="text-white/60 text-xs font-medium tracking-widest uppercase">PROTOCOL MODIFICATION:</span>
+                  </div>
+                  <p id="protocol-mod-text" class="text-sage text-base font-light leading-relaxed ml-0"></p>
+                </div>
+
+                <!-- ALERT (calendar-driven) -->
+                <div id="calendar-alert-section" class="opacity-0 hidden">
+                  <div class="mb-1">
+                    <span class="text-amber text-xs font-medium tracking-widest uppercase">ALERT:</span>
+                  </div>
+                  <p id="calendar-alert-text" class="text-amber/90 text-base font-light leading-relaxed ml-0"></p>
+                </div>
+
                 <!-- DIRECTIVE -->
                 <div id="directive-section" class="opacity-0">
                   <div class="mb-1">
@@ -463,6 +479,16 @@
                 <p id="predictive-narrative" class="text-[#E5E7EB] text-base md:text-lg font-light leading-relaxed"></p>
               </div>
             </div>
+          </div>
+        </section>
+
+        <!-- Strategic Performance Roadmap · Upcoming Stakes -->
+        <section>
+          <div class="glass rounded-2xl p-6 md:p-8 border border-white/10 card-hover">
+            <h3 class="text-white/50 text-xs font-medium tracking-widest uppercase mb-4">Strategic Performance Roadmap</h3>
+            <p class="text-white/40 text-xs font-light mb-5">Upcoming Stakes · Next 24h</p>
+            <ul id="upcoming-stakes-list" class="space-y-3"></ul>
+            <p id="upcoming-stakes-empty" class="hidden text-white/40 text-sm font-light">No high-stakes events in the next 24 hours.</p>
           </div>
         </section>
 
@@ -663,6 +689,45 @@
         });
 
         return { conflicts: conflicts, keep: keep, drop: drop, add: add };
+      }
+
+      /**
+       * Process calendar_events: detect High-stakes morning meetings and Late Night Flights.
+       * Returns { protocolMod: string|null, alert: string|null, upcoming: array }.
+       */
+      function processCalendarEvents(events) {
+        var protocolMod = null;
+        var alert = null;
+        var upcoming = [];
+        if (!events || !events.length) return { protocolMod: protocolMod, alert: alert, upcoming: upcoming };
+
+        var sorted = events.slice().sort(function(a, b) {
+          return new Date(a.start) - new Date(b.start);
+        });
+
+        for (var i = 0; i < sorted.length; i++) {
+          var ev = sorted[i];
+          var start = new Date(ev.start);
+          upcoming.push(ev);
+          var hours = start.getHours();
+          var mins = start.getMinutes();
+          var timeStr = (hours < 10 ? '0' : '') + hours + ':' + (mins < 10 ? '0' : '') + mins;
+          var isMorning = hours < 12;
+          var stakes = (ev.stakes || '').toLowerCase();
+          var h1 = hours - 1;
+          var caffeineTime = (h1 < 10 ? '0' : '') + h1 + ':15';
+
+          if (stakes === 'high' && isMorning && !protocolMod) {
+            protocolMod = (ev.title || 'High-stakes meeting') + ' detected at ' + timeStr + '. Shift caffeine intake to ' + caffeineTime + ' for peak adenosine blocking. Supplement 200mg L-Theanine to balance cortisol.';
+          }
+          if ((/late\s*night|flight/i.test(ev.title || '')) && !alert) {
+            var m = /to\s+(\w+)/i.exec(ev.title || '');
+            var dest = m ? m[1] : '';
+            alert = 'Circadian Disruption Alert: ' + (dest ? dest + ' ' : '') + 'flight tonight. Administer 3mg Melatonin at 9:00 PM and wear blue-light blockers starting 7:00 PM.';
+          }
+        }
+
+        return { protocolMod: protocolMod, alert: alert, upcoming: upcoming };
       }
 
       /**
@@ -872,6 +937,52 @@
         }
 
         renderProtocolExecution(stack);
+
+        var events = (data.clinical_audit && data.clinical_audit.calendar_events) || data.calendar_events || [];
+        var cal = processCalendarEvents(events);
+        var modSec = document.getElementById('protocol-mod-section');
+        var modText = document.getElementById('protocol-mod-text');
+        var alertSec = document.getElementById('calendar-alert-section');
+        var alertText = document.getElementById('calendar-alert-text');
+        var stakesList = document.getElementById('upcoming-stakes-list');
+        var stakesEmpty = document.getElementById('upcoming-stakes-empty');
+
+        if (cal.protocolMod && modSec && modText) {
+          modText.textContent = cal.protocolMod;
+          modSec.classList.remove('hidden');
+          modSec.style.transform = 'translateY(10px)';
+          setTimeout(function() {
+            modSec.style.transition = 'opacity 0.8s ease-out, transform 0.8s ease-out';
+            modSec.style.opacity = '1';
+            modSec.style.transform = 'translateY(0)';
+          }, 1200);
+        }
+        if (cal.alert && alertSec && alertText) {
+          alertText.textContent = cal.alert;
+          alertSec.classList.remove('hidden');
+          alertSec.style.transform = 'translateY(10px)';
+          setTimeout(function() {
+            alertSec.style.transition = 'opacity 0.8s ease-out, transform 0.8s ease-out';
+            alertSec.style.opacity = '1';
+            alertSec.style.transform = 'translateY(0)';
+          }, 1400);
+        }
+
+        if (stakesList) stakesList.innerHTML = '';
+        if (stakesEmpty) stakesEmpty.classList.add('hidden');
+        if (cal.upcoming && cal.upcoming.length) {
+          cal.upcoming.forEach(function(ev) {
+            var start = new Date(ev.start);
+            var timeStr = (start.getHours() < 10 ? '0' : '') + start.getHours() + ':' + (start.getMinutes() < 10 ? '0' : '') + start.getMinutes();
+            var stakes = (ev.stakes || '').toLowerCase();
+            var badge = stakes === 'extreme' ? 'text-amber' : stakes === 'high' ? 'text-sage' : 'text-white/50';
+            var li = document.createElement('li');
+            li.className = 'flex items-center justify-between gap-3 py-2 border-b border-white/5 last:border-0';
+            li.innerHTML = '<span class="text-white/40 text-xs font-light tabular-nums">' + timeStr + '</span><span class="text-[#E5E7EB] text-sm font-light flex-1 truncate">' + (ev.title || '') + '</span><span class="' + badge + ' text-[10px] font-medium tracking-wider uppercase shrink-0">' + (ev.stakes || '') + '</span>';
+            stakesList.appendChild(li);
+          });
+        } else if (stakesEmpty) stakesEmpty.classList.remove('hidden');
+
         initFromBioContext();
       }
 

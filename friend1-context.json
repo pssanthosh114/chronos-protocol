@@ -16,9 +16,10 @@
                         "testosterone_total": "750 ng/dL"
                         },
     "clinical_audit": {
-    "last_blood_panel": "2026-01-15",
-    "critical_markers": {
-    "Vitamin_D": {"value": 28, "unit": "ng/mL", "status": "Deficient"},
+             "last_blood_panel": "2026-01-15",
+             "last_lab_results_ingestion": "2026-01-24",
+             "critical_markers": {
+             "Vitamin_D": {"value": 28, "unit": "ng/mL", "status": "Deficient"},
     "ApoB": {"value": 105, "unit": "mg/dL", "status": "High Risk"},
     "Cortisol_AM": {"value": 19, "unit": "mcg/dL", "status": "Elevated"}
   },
@@ -26,5 +27,10 @@
     {"target": "ApoB", "current_stack": ["Omega-3"], "recommendation": "Add Citrus Bergamot"},
     {"target": "Cortisol", "current_stack": ["Caffeine"], "recommendation": "Reduce Caffeine after 11AM"}
   ]
-}                    
+                        },
+                        "calendar_events": [
+    {"title": "Q1 Board Strategy Meeting", "start": "2026-01-26T09:00:00", "stakes": "High"},
+    {"title": "Deep Work - Product Vision", "start": "2026-01-26T13:00:00", "stakes": "Medium"},
+    {"title": "Late Night Flight to NYC", "start": "2026-01-26T22:00:00", "stakes": "Extreme"}
+]                    
   }
