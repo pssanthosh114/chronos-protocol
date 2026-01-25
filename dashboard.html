@@ -343,7 +343,7 @@
               </div>
               <div class="flex items-end justify-between">
                 <div>
-                  <div class="text-4xl font-light text-white tabular-nums mb-1">12.3</div>
+                  <div id="cortisol-value" class="text-4xl font-light text-white tabular-nums mb-1">12.3</div>
                   <div class="text-white/40 text-xs font-light">μg/dL</div>
                 </div>
                 <div class="flex-1 ml-6 h-12">
@@ -950,12 +950,12 @@
         var ingestedVitd = document.getElementById('ingested-vitd');
         var ingestedApob = document.getElementById('ingested-apob');
         var directiveEl = document.getElementById('directive-text');
+        var hrvVal = document.getElementById('hrv-value');
+        var hrvStatus = document.getElementById('hrv-status');
+        var sleepVal = document.getElementById('sleep-value');
+        var sleepStatus = document.getElementById('sleep-status');
+        var cortisolVal = document.getElementById('cortisol-value');
         if (!card || !upload || !progress) return;
-
-        function prevent(e) {
-          e.preventDefault();
-          e.stopPropagation();
-        }
 
         function showLabNotification(msg) {
           if (!toast || !toastMsg) return;
@@ -988,6 +988,11 @@
               if (ingestedVitd) ingestedVitd.textContent = '32 ng/mL (Flagged: Sub-optimal)';
               if (ingestedApob) ingestedApob.textContent = '98 mg/dL (Flagged: Monitor)';
               if (directiveEl) directiveEl.textContent = 'New lab data integrated. Adjusting Protocol Alpha to include 5,000IU D3 daily.';
+              if (hrvVal) hrvVal.textContent = '72';
+              if (hrvStatus) hrvStatus.textContent = 'Optimal Range';
+              if (sleepVal) sleepVal.textContent = '78';
+              if (sleepStatus) sleepStatus.textContent = 'Recovery Optimized';
+              if (cortisolVal) cortisolVal.textContent = '10.2';
             }
           }, 60);
         }
@@ -1003,18 +1008,36 @@
           });
         }
 
+        function setDragOver(over) {
+          if (over) {
+            card.classList.remove('border-dashed');
+            card.classList.add('border-solid', 'bg-sage/10');
+          } else {
+            card.classList.remove('border-solid', 'bg-sage/10');
+            card.classList.add('border-dashed');
+          }
+        }
+
         card.addEventListener('dragover', function(e) {
-          prevent(e);
-          card.classList.add('drag-over');
+          e.preventDefault();
+          e.stopPropagation();
+          e.dataTransfer.dropEffect = 'copy';
+          setDragOver(true);
         });
-        card.addEventListener('dragenter', prevent);
+        card.addEventListener('dragenter', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          setDragOver(true);
+        });
         card.addEventListener('dragleave', function(e) {
-          prevent(e);
-          if (!card.contains(e.relatedTarget)) card.classList.remove('drag-over');
+          e.preventDefault();
+          e.stopPropagation();
+          if (!card.contains(e.relatedTarget)) setDragOver(false);
         });
         card.addEventListener('drop', function(e) {
-          prevent(e);
-          card.classList.remove('drag-over');
+          e.preventDefault();
+          e.stopPropagation();
+          setDragOver(false);
           var files = e.dataTransfer && e.dataTransfer.files;
           if (!files || !files.length) return;
           handleFileUpload(files[0]);
