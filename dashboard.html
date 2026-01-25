@@ -256,7 +256,8 @@
 
         <!-- Clinical Data Ingestion -->
         <section>
-          <div id="ingestion-card" class="glass rounded-2xl p-8 md:p-12 border-2 border-dashed border-sage/30 transition-all duration-300 ingestion-zone">
+          <div id="ingestion-card" class="glass rounded-2xl p-8 md:p-12 border-2 border-dashed border-sage/30 transition-all duration-300 ingestion-zone cursor-pointer">
+            <input type="file" id="lab-upload-input" class="hidden" accept=".pdf,.jpg,.jpeg,.png">
             <div id="ingestion-upload">
               <div class="flex flex-col items-center justify-center text-center">
                 <div class="mb-6">
@@ -938,6 +939,7 @@
 
       (function initIngestionZone() {
         var card = document.getElementById('ingestion-card');
+        var fileInput = document.getElementById('lab-upload-input');
         var upload = document.getElementById('ingestion-upload');
         var progress = document.getElementById('ingestion-progress');
         var progressBar = document.getElementById('ingestion-progress-bar');
@@ -988,6 +990,17 @@
               if (directiveEl) directiveEl.textContent = 'New lab data integrated. Adjusting Protocol Alpha to include 5,000IU D3 daily.';
             }
           }, 60);
+        }
+
+        card.addEventListener('click', function() {
+          if (fileInput) fileInput.click();
+        });
+        if (fileInput) {
+          fileInput.addEventListener('change', function() {
+            var files = fileInput.files;
+            if (files && files.length) handleFileUpload(files[0]);
+            fileInput.value = '';
+          });
         }
 
         card.addEventListener('dragover', function(e) {
