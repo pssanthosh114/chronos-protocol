@@ -91,6 +91,14 @@
     #compliance-ring {
       transition: stroke-dashoffset 0.4s ease;
     }
+    @keyframes ingestion-glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(180, 227, 61, 0.25); }
+      50% { box-shadow: 0 0 32px rgba(180, 227, 61, 0.45); }
+    }
+    .ingestion-zone.drag-over {
+      border-color: rgba(180, 227, 61, 0.6);
+      animation: ingestion-glow 1s ease-in-out infinite;
+    }
   </style>
 </head>
 <body class="bg-carbon text-white font-sans antialiased min-h-screen" style="letter-spacing: 0.02em;">
@@ -242,6 +250,35 @@
                 <span>6 months ago</span>
                 <span>Today</span>
               </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Clinical Data Ingestion -->
+        <section>
+          <div id="ingestion-card" class="glass rounded-2xl p-8 md:p-12 border-2 border-dashed border-sage/30 transition-all duration-300 ingestion-zone">
+            <div id="ingestion-upload">
+              <div class="flex flex-col items-center justify-center text-center">
+                <div class="mb-6">
+                  <svg class="w-20 h-20 md:w-24 md:h-24 text-sage/70" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M40 8H16a4 4 0 0 0-4 4v40a4 4 0 0 0 4 4h32a4 4 0 0 0 4-4V24L40 8z" opacity="0.6" />
+                    <path d="M40 8v16h16" />
+                    <line x1="20" y1="36" x2="44" y2="36" opacity="0.5" />
+                    <line x1="20" y1="44" x2="36" y2="44" opacity="0.5" />
+                    <circle cx="48" cy="48" r="10" fill="currentColor" opacity="0.9" />
+                    <path d="M48 44v8M44 48h8" stroke="#0A0C10" stroke-width="1.2" stroke-linecap="round" />
+                  </svg>
+                </div>
+                <p class="text-white/90 text-lg font-light tracking-wide mb-2">Drag & Drop Lab Results (PDF/JPG)</p>
+                <p class="text-white/40 text-sm font-light max-w-md">AI will automatically parse markers for ApoB, Vitamin D, and Testosterone.</p>
+              </div>
+            </div>
+            <div id="ingestion-progress" class="flex flex-col items-center justify-center text-center hidden">
+              <p class="text-sage text-sm font-medium tracking-wide mb-4">Scanning DNA...</p>
+              <div class="w-full max-w-md h-2 bg-white/10 rounded-full overflow-hidden mb-2">
+                <div id="ingestion-progress-bar" class="h-full bg-sage rounded-full transition-all duration-300 ease-out" style="width: 0%;"></div>
+              </div>
+              <p id="ingestion-percent" class="text-white/50 text-xs font-light tabular-nums">0%</p>
             </div>
           </div>
         </section>
@@ -432,6 +469,10 @@
         <section class="pt-4">
           <h3 class="text-white/40 text-xs font-medium tracking-widest uppercase mb-8">Clinical Audit</h3>
           <p id="clinical-audit-meta" class="text-white/30 text-xs font-light mb-6"></p>
+          <div id="clinical-ingested-markers" class="hidden space-y-2 mb-6">
+            <p class="text-[#E5E7EB] text-sm font-light"><span class="text-white/60">Vitamin D:</span> <span id="ingested-vitd">—</span></p>
+            <p class="text-[#E5E7EB] text-sm font-light"><span class="text-white/60">ApoB:</span> <span id="ingested-apob">—</span></p>
+          </div>
           <div id="clinical-conflicts" class="space-y-4 mb-10"></div>
           <button type="button" id="review-stack-btn" class="text-sage text-xs font-medium tracking-wider uppercase hover:text-sage/80 transition-colors cursor-pointer">
             Review My Stack
@@ -439,6 +480,11 @@
         </section>
       </div>
     </main>
+  </div>
+
+  <!-- Lab ingestion notification toast -->
+  <div id="lab-toast" class="fixed top-24 right-6 md:right-10 z-[150] hidden max-w-sm rounded-xl border border-sage/30 glass px-5 py-4 shadow-lg" role="alert">
+    <p id="lab-toast-msg" class="text-[#E5E7EB] text-sm font-light"></p>
   </div>
 
   <!-- Review My Stack overlay -->
@@ -888,6 +934,78 @@
         if (btn) btn.addEventListener('click', showOverlay);
         if (closeBtn) closeBtn.addEventListener('click', hideOverlay);
         if (overlay) overlay.addEventListener('click', function(e) { if (e.target === overlay) hideOverlay(); });
+      })();
+
+      (function initIngestionZone() {
+        var card = document.getElementById('ingestion-card');
+        var upload = document.getElementById('ingestion-upload');
+        var progress = document.getElementById('ingestion-progress');
+        var progressBar = document.getElementById('ingestion-progress-bar');
+        var percentEl = document.getElementById('ingestion-percent');
+        var toast = document.getElementById('lab-toast');
+        var toastMsg = document.getElementById('lab-toast-msg');
+        var ingestedBlock = document.getElementById('clinical-ingested-markers');
+        var ingestedVitd = document.getElementById('ingested-vitd');
+        var ingestedApob = document.getElementById('ingested-apob');
+        var directiveEl = document.getElementById('directive-text');
+        if (!card || !upload || !progress) return;
+
+        function prevent(e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+
+        function showLabNotification(msg) {
+          if (!toast || !toastMsg) return;
+          toastMsg.textContent = msg;
+          toast.classList.remove('hidden');
+          setTimeout(function() { toast.classList.add('hidden'); }, 6000);
+        }
+
+        function handleFileUpload(file) {
+          if (!file) return;
+          upload.classList.add('hidden');
+          progress.classList.remove('hidden');
+          progress.classList.add('flex');
+          if (progressBar) progressBar.style.width = '0%';
+          if (percentEl) percentEl.textContent = '0%';
+
+          var start = Date.now();
+          var duration = 3000;
+          var iv = setInterval(function() {
+            var elapsed = Date.now() - start;
+            var pct = elapsed >= duration ? 100 : Math.min(99, Math.round((elapsed / duration) * 100));
+            if (progressBar) progressBar.style.width = pct + '%';
+            if (percentEl) percentEl.textContent = pct + '%';
+            if (elapsed >= duration) {
+              clearInterval(iv);
+              if (progressBar) progressBar.style.width = '100%';
+              if (percentEl) percentEl.textContent = '100%';
+              showLabNotification('Lab Detected: Quest Diagnostics. Extracted 12 New Markers.');
+              if (ingestedBlock) ingestedBlock.classList.remove('hidden');
+              if (ingestedVitd) ingestedVitd.textContent = '32 ng/mL (Flagged: Sub-optimal)';
+              if (ingestedApob) ingestedApob.textContent = '98 mg/dL (Flagged: Monitor)';
+              if (directiveEl) directiveEl.textContent = 'New lab data integrated. Adjusting Protocol Alpha to include 5,000IU D3 daily.';
+            }
+          }, 60);
+        }
+
+        card.addEventListener('dragover', function(e) {
+          prevent(e);
+          card.classList.add('drag-over');
+        });
+        card.addEventListener('dragenter', prevent);
+        card.addEventListener('dragleave', function(e) {
+          prevent(e);
+          if (!card.contains(e.relatedTarget)) card.classList.remove('drag-over');
+        });
+        card.addEventListener('drop', function(e) {
+          prevent(e);
+          card.classList.remove('drag-over');
+          var files = e.dataTransfer && e.dataTransfer.files;
+          if (!files || !files.length) return;
+          handleFileUpload(files[0]);
+        });
       })();
 
       fetch('friend1-context.json')
