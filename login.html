@@ -105,17 +105,19 @@
     </div>
   </div>
 
-  <!-- Supabase -->
+  <!-- Supabase: load first so it's ready before we create the client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     (function () {
-      // Replace with your project URL and anon key
-      var SUPABASE_URL = 'https://your-project.supabase.co';
-      var SUPABASE_ANON_KEY = 'your-anon-key';
+      var SUPABASE_URL = 'https://your-project.supabase.co';  // Replace with your actual URL
+      var SUPABASE_ANON_KEY = 'your-anon-key';                // Replace with your actual Key
 
-      var supabase = window.supabase && SUPABASE_URL && SUPABASE_ANON_KEY
-        ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-        : null;
+      if (typeof window.supabase === 'undefined') {
+        console.error('Supabase library failed to load from CDN.');
+        return;
+      }
+
+      var supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       var form = document.getElementById('login-form');
       var verifyBtn = document.getElementById('verify-btn');
@@ -134,35 +136,20 @@
         }
       }
 
-      function setLoading(loading) {
-        verifyBtn.disabled = loading;
-        verifyBtn.textContent = loading ? 'Verifying…' : 'Verify Identity';
-      }
-
-      /**
-       * Handle login via Supabase auth.
-       * Success: redirect to dashboard.html.
-       * Error: show subtle red error message.
-       */
-      function handleLogin(email, password) {
+      async function handleLogin(email, password) {
         clearError();
-        setLoading(true);
+        verifyBtn.disabled = true;
+        verifyBtn.textContent = 'Verifying...';
 
-        if (!supabase) {
-          setLoading(false);
-          showError('Supabase is not configured. Set SUPABASE_URL and SUPABASE_ANON_KEY in login.html.');
-          return;
+        try {
+          var res = await supabaseClient.auth.signInWithPassword({ email: email, password: password });
+          if (res.error) throw res.error;
+          window.location.href = 'dashboard.html';
+        } catch (err) {
+          showError(err && err.message ? err.message : 'Invalid credentials.');
+          verifyBtn.disabled = false;
+          verifyBtn.textContent = 'Verify Identity';
         }
-
-        supabase.auth.signInWithPassword({ email: email, password: password })
-          .then(function (res) {
-            if (res.error) throw res.error;
-            window.location.href = 'dashboard.html';
-          })
-          .catch(function (err) {
-            setLoading(false);
-            showError(err && err.message ? err.message : 'Invalid email or password. Please try again.');
-          });
       }
 
       form.addEventListener('submit', function (e) {
@@ -173,8 +160,8 @@
         handleLogin(email, password);
       });
 
-      document.getElementById('email').addEventListener('input', clearError);
-      document.getElementById('password').addEventListener('input', clearError);
+      if (document.getElementById('email')) document.getElementById('email').addEventListener('input', clearError);
+      if (document.getElementById('password')) document.getElementById('password').addEventListener('input', clearError);
     })();
   </script>
 </body>
