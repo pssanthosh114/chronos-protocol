@@ -7,13 +7,15 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Syne:wght@500;600;700&display=swap" rel="stylesheet">
+  <script src="https://js.stripe.com/v3/"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
           fontFamily: {
             sans: ['Inter', 'sans-serif'],
+            'digital-sage': ['Syne', 'sans-serif'],
           },
           colors: {
             carbon: '#0A0C10',
@@ -99,9 +101,34 @@
       border-color: rgba(180, 227, 61, 0.6);
       animation: ingestion-glow 1s ease-in-out infinite;
     }
+    .membership-overlay-backdrop {
+      background: rgba(10, 12, 16, 0.6);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+    }
+    body.membership-overlay-active {
+      overflow: hidden;
+      height: 100vh;
+    }
   </style>
 </head>
 <body class="bg-carbon text-white font-sans antialiased min-h-screen" style="letter-spacing: 0.02em;">
+  <!-- Membership Required overlay (glassmorphism) -->
+  <div id="membership-overlay" class="fixed inset-0 z-[300] flex items-center justify-center p-4 membership-overlay-backdrop" aria-modal="true" aria-labelledby="membership-overlay-title" role="dialog" style="display: none;">
+    <div class="w-full max-w-md rounded-2xl border border-white/10 bg-carbon/80 shadow-2xl p-10 md:p-12 text-center" style="box-shadow: 0 0 0 1px rgba(255,255,255,0.05), 0 25px 50px -12px rgba(0,0,0,0.5);">
+      <div id="membership-overlay-title" class="text-white/90 text-2xl font-semibold tracking-widest mb-6" style="font-family: 'Syne', sans-serif;">CHRONOS</div>
+      <p class="text-white/70 text-sm font-light leading-relaxed mb-6">Founding Member Access Only. Your personalized longevity protocol is ready, but your membership is inactive.</p>
+      <div class="mb-8">
+        <label for="invite-code-input" class="block text-white/50 text-xs font-medium tracking-wider uppercase mb-2">Invite Code</label>
+        <input type="text" id="invite-code-input" placeholder="Enter code" autocomplete="off" class="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-white/30 text-sm font-light focus:outline-none focus:border-sage/50 focus:ring-1 focus:ring-sage/30 transition-colors">
+        <p id="invite-code-hint" class="mt-2 text-white/40 text-xs font-light hidden">Invalid code.</p>
+      </div>
+      <button type="button" id="membership-activate-btn" class="font-digital-sage w-full py-4 px-6 rounded-xl bg-sage text-carbon text-lg font-semibold tracking-wide hover:bg-sage/90 focus:outline-none focus:ring-2 focus:ring-sage focus:ring-offset-2 focus:ring-offset-carbon transition-all duration-200">
+        Activate Protocol — $2,000/mo
+      </button>
+    </div>
+  </div>
+
   <div class="min-h-screen">
     <!-- Bio-Clock Header -->
     <header class="border-b border-white/10 bg-carbon/80 backdrop-blur-sm sticky top-0 z-50">
@@ -564,6 +591,61 @@
           return;
         }
       }
+
+      var isMember = false;
+      var STRIPE_CHECKOUT_URL = 'https://checkout.stripe.com/placeholder';
+
+      function applyMembershipOverlay() {
+        var overlay = document.getElementById('membership-overlay');
+        if (!overlay) return;
+        if (isMember) {
+          overlay.style.display = 'none';
+          document.body.classList.remove('membership-overlay-active');
+        } else {
+          overlay.style.display = 'flex';
+          document.body.classList.add('membership-overlay-active');
+        }
+      }
+
+      (function initMembershipOverlay() {
+        applyMembershipOverlay();
+
+        var activateBtn = document.getElementById('membership-activate-btn');
+        if (activateBtn) {
+          activateBtn.addEventListener('click', function() {
+            window.location.href = STRIPE_CHECKOUT_URL;
+          });
+        }
+
+        var inviteInput = document.getElementById('invite-code-input');
+        var inviteHint = document.getElementById('invite-code-hint');
+        var FOUNDER_CODE = 'CHRONOS_FOUNDER';
+        if (inviteInput) {
+          inviteInput.addEventListener('input', function() {
+            if (inviteHint) inviteHint.classList.add('hidden');
+          });
+          inviteInput.addEventListener('blur', function() {
+            var code = inviteInput.value ? inviteInput.value.trim() : '';
+            if (code === FOUNDER_CODE) {
+              isMember = true;
+              applyMembershipOverlay();
+            } else if (code.length > 0 && inviteHint) {
+              inviteHint.classList.remove('hidden');
+            }
+          });
+          inviteInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+              var code = inviteInput.value ? inviteInput.value.trim() : '';
+              if (code === FOUNDER_CODE) {
+                isMember = true;
+                applyMembershipOverlay();
+              } else if (code.length > 0 && inviteHint) {
+                inviteHint.classList.remove('hidden');
+              }
+            }
+          });
+        }
+      })();
 
       document.body.style.transition = 'opacity 0.2s ease';
       document.body.style.opacity = '1';
