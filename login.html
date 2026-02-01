@@ -247,7 +247,9 @@
         if (recoveryBtn) { recoveryBtn.disabled = true; recoveryBtn.textContent = 'Sending...'; }
 
         try {
-          var redirectTo = window.location.origin + (window.location.pathname || '/login.html');
+          var path = window.location.pathname || '/';
+          var dir = path.substring(0, path.lastIndexOf('/') + 1);
+          var redirectTo = window.location.origin + dir + 'recovery.html';
           var res = await supabaseClient.auth.resetPasswordForEmail(email.trim(), { redirectTo: redirectTo });
           if (res.error) throw res.error;
           if (recoverySuccess) recoverySuccess.classList.remove('hidden');
