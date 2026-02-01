@@ -63,41 +63,82 @@
         <p class="text-white/50 text-xs font-light tracking-widest uppercase">Private Executive Access</p>
       </div>
 
-      <!-- Form -->
-      <form id="login-form" class="space-y-6">
-        <div>
-          <label for="email" class="block text-white/60 text-xs font-medium tracking-wider mb-2">Email</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            autocomplete="email"
-            required
-            placeholder="you@company.com"
-            class="input-focus w-full bg-transparent border border-white/10 rounded-lg py-3.5 px-4 text-white placeholder-white/30 font-light text-sm transition-colors duration-200"
-          />
-        </div>
-        <div>
-          <label for="password" class="block text-white/60 text-xs font-medium tracking-wider mb-2">Password</label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            autocomplete="current-password"
-            required
-            placeholder="••••••••"
-            class="input-focus w-full bg-transparent border border-white/10 rounded-lg py-3.5 px-4 text-white placeholder-white/30 font-light text-sm transition-colors duration-200"
-          />
-        </div>
-        <p id="login-error" class="error-msg hidden text-center py-2" role="alert"></p>
-        <button
-          type="submit"
-          id="verify-btn"
-          class="btn-pulse w-full bg-sage text-carbon font-medium tracking-widest text-sm uppercase py-4 rounded-lg border border-sage/50 hover:bg-sage/90 hover:border-sage transition-all duration-200 cursor-pointer"
-        >
-          Verify Identity
-        </button>
-      </form>
+      <!-- Login Form -->
+      <div id="login-form-wrap">
+        <form id="login-form" class="space-y-6">
+          <div>
+            <label for="email" class="block text-white/60 text-xs font-medium tracking-wider mb-2">Email</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              autocomplete="email"
+              required
+              placeholder="you@company.com"
+              class="input-focus w-full bg-transparent border border-white/10 rounded-lg py-3.5 px-4 text-white placeholder-white/30 font-light text-sm transition-colors duration-200"
+            />
+          </div>
+          <div>
+            <label for="password" class="block text-white/60 text-xs font-medium tracking-wider mb-2">Password</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              autocomplete="current-password"
+              required
+              placeholder="••••••••"
+              class="input-focus w-full bg-transparent border border-white/10 rounded-lg py-3.5 px-4 text-white placeholder-white/30 font-light text-sm transition-colors duration-200"
+            />
+          </div>
+          <p id="login-error" class="error-msg hidden text-center py-2" role="alert"></p>
+          <button
+            type="submit"
+            id="verify-btn"
+            class="btn-pulse w-full bg-sage text-carbon font-medium tracking-widest text-sm uppercase py-4 rounded-lg border border-sage/50 hover:bg-sage/90 hover:border-sage transition-all duration-200 cursor-pointer"
+          >
+            Verify Identity
+          </button>
+          <p class="text-center mt-4">
+            <button type="button" id="forgot-password-link" class="text-white/40 text-xs font-light tracking-wide hover:text-sage transition-colors duration-200">
+              Forgot Password?
+            </button>
+          </p>
+        </form>
+      </div>
+
+      <!-- Recovery Form (hidden by default) -->
+      <div id="recovery-form-wrap" class="hidden">
+        <form id="recovery-form" class="space-y-6">
+          <div>
+            <label for="recovery-email" class="block text-white/60 text-xs font-medium tracking-wider mb-2">Email</label>
+            <input
+              type="email"
+              id="recovery-email"
+              name="recovery-email"
+              autocomplete="email"
+              required
+              placeholder="you@company.com"
+              class="input-focus w-full bg-transparent border border-white/10 rounded-lg py-3.5 px-4 text-white placeholder-white/30 font-light text-sm transition-colors duration-200"
+            />
+          </div>
+          <p id="recovery-error" class="error-msg hidden text-center py-2" role="alert"></p>
+          <p id="recovery-success" class="hidden text-center py-3 text-sage text-sm font-light tracking-wide" role="status">
+            Recovery Link Dispatched. Check your encrypted inbox.
+          </p>
+          <button
+            type="submit"
+            id="recovery-btn"
+            class="w-full bg-sage text-carbon font-medium tracking-widest text-sm uppercase py-4 rounded-lg border border-sage/50 hover:bg-sage/90 hover:border-sage transition-all duration-200 cursor-pointer"
+          >
+            Send Recovery Link
+          </button>
+          <p class="text-center mt-4">
+            <button type="button" id="back-to-login-link" class="text-white/40 text-xs font-light tracking-wide hover:text-sage transition-colors duration-200">
+              Back to sign in
+            </button>
+          </p>
+        </form>
+      </div>
 
       <p class="mt-8 text-center text-white/30 text-xs font-light tracking-wide">
         By signing in, you agree to Chronos Protocol terms.
@@ -172,6 +213,62 @@
 
       if (document.getElementById('email')) document.getElementById('email').addEventListener('input', clearError);
       if (document.getElementById('password')) document.getElementById('password').addEventListener('input', clearError);
+
+      // Forgot Password / Recovery
+      var loginWrap = document.getElementById('login-form-wrap');
+      var recoveryWrap = document.getElementById('recovery-form-wrap');
+      var forgotLink = document.getElementById('forgot-password-link');
+      var backLink = document.getElementById('back-to-login-link');
+      var recoveryForm = document.getElementById('recovery-form');
+      var recoveryBtn = document.getElementById('recovery-btn');
+      var recoveryError = document.getElementById('recovery-error');
+      var recoverySuccess = document.getElementById('recovery-success');
+
+      if (forgotLink && loginWrap && recoveryWrap) {
+        forgotLink.addEventListener('click', function () {
+          loginWrap.classList.add('hidden');
+          recoveryWrap.classList.remove('hidden');
+          if (recoveryError) { recoveryError.classList.add('hidden'); recoveryError.textContent = ''; }
+          if (recoverySuccess) recoverySuccess.classList.add('hidden');
+        });
+      }
+
+      if (backLink && loginWrap && recoveryWrap) {
+        backLink.addEventListener('click', function () {
+          recoveryWrap.classList.add('hidden');
+          loginWrap.classList.remove('hidden');
+        });
+      }
+
+      async function handleRecovery(email) {
+        if (!email || !email.trim()) return;
+        if (recoveryError) { recoveryError.classList.add('hidden'); recoveryError.textContent = ''; }
+        if (recoverySuccess) recoverySuccess.classList.add('hidden');
+        if (recoveryBtn) { recoveryBtn.disabled = true; recoveryBtn.textContent = 'Sending...'; }
+
+        try {
+          var redirectTo = window.location.origin + (window.location.pathname || '/login.html');
+          var res = await supabaseClient.auth.resetPasswordForEmail(email.trim(), { redirectTo: redirectTo });
+          if (res.error) throw res.error;
+          if (recoverySuccess) recoverySuccess.classList.remove('hidden');
+        } catch (err) {
+          if (recoveryError) {
+            recoveryError.textContent = err && err.message ? err.message : 'Something went wrong.';
+            recoveryError.classList.remove('hidden');
+          }
+        }
+        if (recoveryBtn) { recoveryBtn.disabled = false; recoveryBtn.textContent = 'Send Recovery Link'; }
+      }
+
+      if (recoveryForm) {
+        recoveryForm.addEventListener('submit', function (e) {
+          e.preventDefault();
+          var emailInput = document.getElementById('recovery-email');
+          var email = emailInput ? emailInput.value.trim() : '';
+          if (!email) return;
+          handleRecovery(email);
+        });
+      }
     })();
   </script>
 </body>
