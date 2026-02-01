@@ -110,6 +110,38 @@
       overflow: hidden;
       height: 100vh;
     }
+    .protocol-log-timeline {
+      border-left: 1px solid rgba(180, 227, 61, 0.25);
+      margin-left: 7px;
+      padding-left: 1.5rem;
+    }
+    .protocol-log-entry {
+      position: relative;
+      padding-bottom: 1.5rem;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
+    }
+    .protocol-log-entry:last-child { padding-bottom: 0; }
+    .protocol-log-entry::before {
+      content: '';
+      position: absolute;
+      left: -1.625rem;
+      top: 0.4rem;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(180, 227, 61, 0.6);
+      box-shadow: 0 0 8px rgba(180, 227, 61, 0.3);
+    }
+    .protocol-log-entry:hover { opacity: 0.9; }
+    .protocol-log-entry .protocol-log-reasoning {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease-out;
+    }
+    .protocol-log-entry.expanded .protocol-log-reasoning {
+      max-height: 400px;
+    }
   </style>
 </head>
 <body class="bg-carbon text-white font-sans antialiased min-h-screen" style="letter-spacing: 0.02em;">
@@ -537,6 +569,54 @@
           </div>
         </section>
 
+        <!-- Protocol Log -->
+        <section>
+          <div class="glass rounded-2xl p-6 md:p-8 border border-white/10 card-hover">
+            <h3 class="text-white/50 text-xs font-medium tracking-widest uppercase mb-6">Protocol Log</h3>
+            <ul class="protocol-log-timeline list-none pl-0" id="protocol-log-list">
+              <li class="protocol-log-entry" data-reasoning="HRV above 70ms indicates parasympathetic dominance. L-Theanine supports GABA without sedation; 100mg increment aligns with current stack and avoids interaction with morning caffeine.">
+                <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                  <span class="text-white/50 text-xs font-medium tabular-nums">08:00 AM</span>
+                  <span class="text-sage/90 text-[10px] font-medium tracking-wider uppercase px-2 py-0.5 rounded border border-sage/30">Biometric</span>
+                </div>
+                <p class="text-white/80 text-sm font-light leading-relaxed mb-2">Biometric Sync — HRV 72ms. Recommendation: Increase L-Theanine by 100mg.</p>
+                <div class="protocol-log-reasoning">
+                  <p class="text-white/45 text-xs font-light leading-relaxed pt-2 border-t border-white/10 mt-2">
+                    <span class="text-white/50 text-[10px] font-medium tracking-wider uppercase">AI Reasoning:</span><br>
+                    HRV above 70ms indicates parasympathetic dominance. L-Theanine supports GABA without sedation; 100mg increment aligns with current stack and avoids interaction with morning caffeine.
+                  </p>
+                </div>
+              </li>
+              <li class="protocol-log-entry" data-reasoning="ApoB 92 mg/dL is within acceptable range but trending. Protocol Alpha prioritizes lipid optimization and retest in 90 days.">
+                <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                  <span class="text-white/50 text-xs font-medium tabular-nums">Yesterday</span>
+                  <span class="text-white/50 text-[10px] font-medium tracking-wider uppercase px-2 py-0.5 rounded border border-white/20">Clinical</span>
+                </div>
+                <p class="text-white/80 text-sm font-light leading-relaxed mb-2">Lab Ingestion — ApoB 92 mg/dL. Protocol Alpha initiated.</p>
+                <div class="protocol-log-reasoning">
+                  <p class="text-white/45 text-xs font-light leading-relaxed pt-2 border-t border-white/10 mt-2">
+                    <span class="text-white/50 text-[10px] font-medium tracking-wider uppercase">AI Reasoning:</span><br>
+                    ApoB 92 mg/dL is within acceptable range but trending. Protocol Alpha prioritizes lipid optimization and retest in 90 days.
+                  </p>
+                </div>
+              </li>
+              <li class="protocol-log-entry" data-reasoning="High-stakes morning meeting detected. Caffeine at 08:15 maximizes adenosine blockade for peak focus at 10:00. L-Theanine buffers cortisol spike.">
+                <div class="flex flex-wrap items-center gap-2 mb-1.5">
+                  <span class="text-white/50 text-xs font-medium tabular-nums">Yesterday 06:30 AM</span>
+                  <span class="text-amber/80 text-[10px] font-medium tracking-wider uppercase px-2 py-0.5 rounded border border-amber/30">Schedule</span>
+                </div>
+                <p class="text-white/80 text-sm font-light leading-relaxed mb-2">Calendar sync — Board review 10:00 AM. Directive: Shift caffeine to 08:15, add 200mg L-Theanine.</p>
+                <div class="protocol-log-reasoning">
+                  <p class="text-white/45 text-xs font-light leading-relaxed pt-2 border-t border-white/10 mt-2">
+                    <span class="text-white/50 text-[10px] font-medium tracking-wider uppercase">AI Reasoning:</span><br>
+                    High-stakes morning meeting detected. Caffeine at 08:15 maximizes adenosine blockade for peak focus at 10:00. L-Theanine buffers cortisol spike.
+                  </p>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </section>
+
         <!-- Clinical Audit (Quiet UI) -->
         <section class="pt-4">
           <h3 class="text-white/40 text-xs font-medium tracking-widest uppercase mb-8">Clinical Audit</h3>
@@ -620,6 +700,99 @@
       } catch (e) {}
 
       var STRIPE_CHECKOUT_URL = 'https://checkout.stripe.com/placeholder';
+
+      var PROTOCOL_LOG_STORAGE_KEY = 'chronos_protocol_log';
+      var MAX_PROTOCOL_LOG_ENTRIES = 100;
+
+      function getProtocolLogFromStorage() {
+        try {
+          var raw = localStorage.getItem(PROTOCOL_LOG_STORAGE_KEY);
+          return raw ? JSON.parse(raw) : [];
+        } catch (e) { return []; }
+      }
+
+      function saveProtocolLogToStorage(logs) {
+        try {
+          localStorage.setItem(PROTOCOL_LOG_STORAGE_KEY, JSON.stringify(logs.slice(0, MAX_PROTOCOL_LOG_ENTRIES)));
+        } catch (e) {}
+      }
+
+      function formatProtocolLogTime() {
+        var d = new Date();
+        var h = d.getHours();
+        var m = d.getMinutes();
+        var am = h < 12;
+        var h12 = h % 12 || 12;
+        var timeStr = h12 + ':' + (m < 10 ? '0' : '') + m + (am ? ' AM' : ' PM');
+        return timeStr;
+      }
+
+      function categoryTagClass(category) {
+        var c = (category || '').toLowerCase();
+        if (c === 'biometric') return 'text-sage/90 text-[10px] font-medium tracking-wider uppercase px-2 py-0.5 rounded border border-sage/30';
+        if (c === 'schedule') return 'text-amber/80 text-[10px] font-medium tracking-wider uppercase px-2 py-0.5 rounded border border-amber/30';
+        return 'text-white/50 text-[10px] font-medium tracking-wider uppercase px-2 py-0.5 rounded border border-white/20';
+      }
+
+      function addToProtocolLog(category, message, reasoning) {
+        var timestamp = formatProtocolLogTime();
+        var entry = { category: category || 'Clinical', message: message || '', timestamp: timestamp, reasoning: reasoning || message || '' };
+        var logs = getProtocolLogFromStorage();
+        logs.unshift(entry);
+        saveProtocolLogToStorage(logs);
+
+        var list = document.getElementById('protocol-log-list');
+        if (!list) return;
+        var li = document.createElement('li');
+        li.className = 'protocol-log-entry';
+        li.dataset.reasoning = entry.reasoning;
+        li.innerHTML =
+          '<div class="flex flex-wrap items-center gap-2 mb-1.5">' +
+            '<span class="text-white/50 text-xs font-medium tabular-nums">' + escapeHtml(entry.timestamp) + '</span>' +
+            '<span class="' + categoryTagClass(entry.category) + '">' + escapeHtml(entry.category) + '</span>' +
+          '</div>' +
+          '<p class="text-white/80 text-sm font-light leading-relaxed mb-2">' + escapeHtml(entry.message) + '</p>' +
+          '<div class="protocol-log-reasoning">' +
+            '<p class="text-white/45 text-xs font-light leading-relaxed pt-2 border-t border-white/10 mt-2">' +
+              '<span class="text-white/50 text-[10px] font-medium tracking-wider uppercase">AI Reasoning:</span><br>' +
+              escapeHtml(entry.reasoning) +
+            '</p>' +
+          '</div>';
+        list.insertBefore(li, list.firstChild);
+      }
+
+      function escapeHtml(s) {
+        if (s == null) return '';
+        var str = String(s);
+        var div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+      }
+
+      function loadProtocolLogFromStorage() {
+        var list = document.getElementById('protocol-log-list');
+        if (!list) return;
+        var logs = getProtocolLogFromStorage();
+        for (var i = logs.length - 1; i >= 0; i--) {
+          var entry = logs[i];
+          var li = document.createElement('li');
+          li.className = 'protocol-log-entry';
+          li.dataset.reasoning = entry.reasoning || '';
+          li.innerHTML =
+            '<div class="flex flex-wrap items-center gap-2 mb-1.5">' +
+              '<span class="text-white/50 text-xs font-medium tabular-nums">' + escapeHtml(entry.timestamp) + '</span>' +
+              '<span class="' + categoryTagClass(entry.category) + '">' + escapeHtml(entry.category) + '</span>' +
+            '</div>' +
+            '<p class="text-white/80 text-sm font-light leading-relaxed mb-2">' + escapeHtml(entry.message) + '</p>' +
+            '<div class="protocol-log-reasoning">' +
+              '<p class="text-white/45 text-xs font-light leading-relaxed pt-2 border-t border-white/10 mt-2">' +
+                '<span class="text-white/50 text-[10px] font-medium tracking-wider uppercase">AI Reasoning:</span><br>' +
+                escapeHtml(entry.reasoning || '') +
+              '</p>' +
+            '</div>';
+          list.insertBefore(li, list.firstChild);
+        }
+      }
 
       function applyMembershipOverlay() {
         var overlay = document.getElementById('membership-overlay');
@@ -1083,6 +1256,7 @@
             modSec.style.opacity = '1';
             modSec.style.transform = 'translateY(0)';
           }, 1200);
+          if (typeof addToProtocolLog === 'function') addToProtocolLog('Schedule', cal.protocolMod);
         }
         if (cal.alert && alertSec && alertText) {
           alertText.textContent = cal.alert;
@@ -1093,6 +1267,7 @@
             alertSec.style.opacity = '1';
             alertSec.style.transform = 'translateY(0)';
           }, 1400);
+          if (typeof addToProtocolLog === 'function') addToProtocolLog('Schedule', cal.alert);
         }
 
         if (stakesList) stakesList.innerHTML = '';
@@ -1175,6 +1350,21 @@
         if (overlay) overlay.addEventListener('click', function(e) { if (e.target === overlay) hideOverlay(); });
       })();
 
+      (function initProtocolLog() {
+        loadProtocolLogFromStorage();
+        var list = document.getElementById('protocol-log-list');
+        if (list) {
+          list.addEventListener('click', function(e) {
+            var entry = e.target.closest('.protocol-log-entry');
+            if (!entry) return;
+            var wasExpanded = entry.classList.contains('expanded');
+            var entries = list.querySelectorAll('.protocol-log-entry');
+            entries.forEach(function(el) { el.classList.remove('expanded'); });
+            if (!wasExpanded) entry.classList.add('expanded');
+          });
+        }
+      })();
+
       (function initIngestionZone() {
         var card = document.getElementById('ingestion-card');
         var fileInput = document.getElementById('lab-upload-input');
@@ -1222,6 +1412,9 @@
               if (progressBar) progressBar.style.width = '100%';
               if (percentEl) percentEl.textContent = '100%';
               showLabNotification('Lab Detected: Quest Diagnostics. Extracted 12 New Markers.');
+              if (typeof addToProtocolLog === 'function') {
+                addToProtocolLog('Clinical', 'Lab Ingestion — Quest Diagnostics. 12 new markers extracted.', 'Lab panel parsed. Protocol Alpha updated with new markers.');
+              }
               if (ingestedBlock) ingestedBlock.classList.remove('hidden');
               if (ingestedVitd) ingestedVitd.textContent = '32 ng/mL (Flagged: Sub-optimal)';
               if (ingestedApob) ingestedApob.textContent = '98 mg/dL (Flagged: Monitor)';
