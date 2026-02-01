@@ -247,8 +247,10 @@
         if (recoveryBtn) { recoveryBtn.disabled = true; recoveryBtn.textContent = 'Sending...'; }
 
         const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const path = window.location.pathname || '/';
+        const dir = path.substring(0, path.lastIndexOf('/') + 1);
         const redirectTo = isLocal
-          ? window.location.origin + (window.location.pathname.replace(/[^/]+$/, '') || '/') + 'update-password.html'
+          ? window.location.origin + dir + 'update-password.html'
           : 'https://joinchronos.com/update-password.html';
         const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
           redirectTo: redirectTo,
