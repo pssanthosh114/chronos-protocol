@@ -142,6 +142,9 @@
     .protocol-log-entry.expanded .protocol-log-reasoning {
       max-height: 400px;
     }
+    .protocol-log-entry-hidden {
+      display: none;
+    }
   </style>
 </head>
 <body class="bg-carbon text-white font-sans antialiased min-h-screen" style="letter-spacing: 0.02em;">
@@ -610,6 +613,11 @@
                 </div>
               </li>
             </ul>
+            <div id="protocol-log-more-wrap" class="mt-6 pt-4 border-t border-white/5 text-center hidden">
+              <button type="button" id="protocol-log-more-btn" class="text-sage/90 text-xs font-medium tracking-wider uppercase hover:text-sage transition-colors py-2 px-4 rounded-lg border border-sage/30 hover:border-sage/50 focus:outline-none focus:ring-1 focus:ring-sage/40">
+                Show more
+              </button>
+            </div>
           </div>
         </section>
 
@@ -698,6 +706,8 @@
 
       var PROTOCOL_LOG_STORAGE_KEY = 'chronos_protocol_log';
       var MAX_PROTOCOL_LOG_ENTRIES = 100;
+      var PROTOCOL_LOG_INITIAL_COUNT = 10;
+      var protocolLogExpanded = false;
 
       function getProtocolLogFromStorage() {
         try {
@@ -754,6 +764,33 @@
             '</p>' +
           '</div>';
         list.insertBefore(li, list.firstChild);
+        updateProtocolLogVisibility();
+      }
+
+      function updateProtocolLogVisibility() {
+        var list = document.getElementById('protocol-log-list');
+        var wrap = document.getElementById('protocol-log-more-wrap');
+        var btn = document.getElementById('protocol-log-more-btn');
+        if (!list || !wrap || !btn) return;
+        var entries = list.querySelectorAll('.protocol-log-entry');
+        var total = entries.length;
+        if (total <= PROTOCOL_LOG_INITIAL_COUNT) {
+          entries.forEach(function(el) { el.classList.remove('protocol-log-entry-hidden'); });
+          wrap.classList.add('hidden');
+          return;
+        }
+        wrap.classList.remove('hidden');
+        if (protocolLogExpanded) {
+          entries.forEach(function(el) { el.classList.remove('protocol-log-entry-hidden'); });
+          btn.textContent = 'Show less';
+        } else {
+          entries.forEach(function(el, i) {
+            if (i >= PROTOCOL_LOG_INITIAL_COUNT) el.classList.add('protocol-log-entry-hidden');
+            else el.classList.remove('protocol-log-entry-hidden');
+          });
+          var more = total - PROTOCOL_LOG_INITIAL_COUNT;
+          btn.textContent = 'Show more (' + more + ' more)';
+        }
       }
 
       function escapeHtml(s) {
@@ -1347,6 +1384,7 @@
 
       (function initProtocolLog() {
         loadProtocolLogFromStorage();
+        updateProtocolLogVisibility();
         var list = document.getElementById('protocol-log-list');
         if (list) {
           list.addEventListener('click', function(e) {
@@ -1356,6 +1394,13 @@
             var entries = list.querySelectorAll('.protocol-log-entry');
             entries.forEach(function(el) { el.classList.remove('expanded'); });
             if (!wasExpanded) entry.classList.add('expanded');
+          });
+        }
+        var moreBtn = document.getElementById('protocol-log-more-btn');
+        if (moreBtn) {
+          moreBtn.addEventListener('click', function() {
+            protocolLogExpanded = !protocolLogExpanded;
+            updateProtocolLogVisibility();
           });
         }
       })();
