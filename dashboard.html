@@ -455,7 +455,7 @@
                 <div id="status-section" class="opacity-0">
                   <div class="flex items-center gap-3 mb-1">
                     <span class="text-white/60 text-xs font-medium tracking-widest uppercase">STATUS:</span>
-                    <span class="w-2 h-2 rounded-full bg-sage animate-pulse-subtle"></span>
+                    <span id="status-badge" class="w-2 h-2 rounded-full bg-sage animate-pulse-subtle" aria-hidden="true"></span>
                   </div>
                   <p id="status-text" class="text-[#E5E7EB] text-base font-light leading-relaxed ml-0">Optimal Baseline</p>
                 </div>
@@ -1181,19 +1181,22 @@
             return res.json();
           })
           .then(function(body) {
+            var data = body.data || body;
             if (body.protocolCached) {
               return {
-                directive: body.directive || 'Using last known protocol. AI temporarily unavailable.',
-                insight: body.insight || '',
-                statusText: body.statusText || 'Protocol Cached',
-                protocolLogMessage: body.protocolLogMessage || body.directive || '',
+                directive: body.directive || data.primary_directive || 'Using last known protocol. AI temporarily unavailable.',
+                insight: body.insight || data.reasoning || '',
+                statusText: body.statusText || data.status || 'Protocol Cached',
+                status: data.status || body.status || 'cached',
+                protocolLogMessage: body.protocolLogMessage || data.primary_directive || body.directive || '',
               };
             }
             return {
-              directive: body.directive || body.data && body.data.directive || '',
-              insight: body.insight || body.data && body.data.insight || '',
-              statusText: body.statusText || body.data && body.data.statusText || 'Re-analyzed',
-              protocolLogMessage: body.protocolLogMessage || body.directive || body.data && (body.data.protocolLogMessage || body.data.directive) || '',
+              directive: data.primary_directive || body.directive || data.directive || '',
+              insight: data.reasoning || body.insight || data.insight || '',
+              statusText: data.status || body.statusText || data.statusText || 'Re-analyzed',
+              status: data.status || body.status || 'Optimal',
+              protocolLogMessage: data.primary_directive || body.protocolLogMessage || body.directive || data.directive || '',
             };
           })
           .catch(function() {
@@ -1552,6 +1555,15 @@
           if (directiveText) directiveText.textContent = response.directive || directiveText.textContent;
           if (statusTextEl) statusTextEl.textContent = response.statusText || statusTextEl.textContent;
           if (insightTextEl) insightTextEl.textContent = response.insight || insightTextEl.textContent;
+          var statusBadge = document.getElementById('status-badge');
+          if (statusBadge) {
+            statusBadge.classList.remove('bg-sage', 'bg-amber');
+            if ((response.status || '').toLowerCase() === 'caution') {
+              statusBadge.classList.add('bg-amber');
+            } else {
+              statusBadge.classList.add('bg-sage');
+            }
+          }
           if (typeof addToProtocolLog === 'function' && (response.directive || response.protocolLogMessage)) {
             addToProtocolLog('Biometric', response.directive || response.protocolLogMessage, response.insight || '');
           }
