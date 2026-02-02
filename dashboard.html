@@ -1575,16 +1575,51 @@
             return;
           }
           if (btn.disabled) return;
+
           setAnalyzing(true);
           var currentDashboardData = collectDashboardPayload();
+
           try {
-            var response = await getProtocolDirective(currentDashboardData);
-            updateUI(response);
-          } catch (e) {
-            if (directiveText) directiveText.textContent = 'Protocol Cached. Using last known directive.';
-            if (typeof addToProtocolLog === 'function') {
-              addToProtocolLog('Biometric', 'Re-analysis requested. Protocol Cached — AI unavailable.', '');
+            var response = await fetch('https://olqmevknjdzbjrhwsetk.supabase.co/functions/v1/protocol-analysis', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9scW1ldmtuamR6YmpyaHdzZXRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyOTI3NzUsImV4cCI6MjA4NDg2ODc3NX0.N_tg00n9iqWABfsLW3M0YAqf16dd9C1N9B9MMJTrsFI'
+              },
+              body: JSON.stringify({ userData: currentDashboardData })
+            });
+
+            var result = await response.json();
+
+            // Use normalized top-level fields from edge function (directive, insight, statusText, protocolLogMessage)
+            if (!response.ok) {
+              throw new Error(result.error || result.message || 'Analysis failed');
             }
+            if (result.protocolCached !== true && (result.directive != null || result.insight != null || result.statusText != null)) {
+              updateUI({
+                directive: result.directive,
+                status: result.status,
+                statusText: result.statusText,
+                insight: result.insight
+              });
+              if (typeof addToProtocolLog === 'function') {
+                addToProtocolLog('AI Neural Link', 'Analysis Complete', result.protocolLogMessage || result.directive || '');
+              }
+            } else if (result.data) {
+              // Fallback: raw assistant payload (primary_directive, reasoning, etc.)
+              updateUI({
+                directive: result.data.primary_directive || result.data.directive,
+                status: result.data.status,
+                statusText: result.data.status || result.data.statusText,
+                insight: result.data.reasoning || result.data.insight
+              });
+              if (typeof addToProtocolLog === 'function') {
+                addToProtocolLog('AI Neural Link', 'Analysis Complete', result.data.protocol_code || result.data.protocolLogMessage || '');
+              }
+            }
+          } catch (e) {
+            console.error('AI Link Failed:', e);
+            if (directiveText) directiveText.textContent = 'Neural Link Interrupted. Using cached data.';
           } finally {
             setAnalyzing(false);
           }
