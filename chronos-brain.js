@@ -8,7 +8,7 @@
 const OpenAI = require('openai');
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const assistantId = 'asst_i2euh7FtRdd7OJMEZnUtlYRP';
+const assistantId = 'asst_idrCrYpx7nA42iEL0HJNRQNQ';
 
 let client = null;
 
