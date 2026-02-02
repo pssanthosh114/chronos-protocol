@@ -1160,14 +1160,20 @@
         };
       }
 
+      var SUPABASE_EDGE_PROTOCOL_ANALYSIS = 'https://olqmevknjdzbjrhwsetk.supabase.co/functions/v1/protocol-analysis';
+      var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9scW1ldmtuamR6YmpyaHdzZXRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkyOTI3NzUsImV4cCI6MjA4NDg2ODc3NX0.N_tg00n9iqWABfsLW3M0YAqf16dd9C1N9B9MMJTrsFI';
+
       /**
        * Call AI (or fallback) to get a new directive. Returns { directive, insight, statusText, protocolLogMessage }.
+       * Sends userData (HRV, Sleep, etc.) to the live Supabase Edge Function.
        */
       function getProtocolDirective(payload) {
-        var apiUrl = '/api/protocol-analysis';
-        return fetch(apiUrl, {
+        return fetch(SUPABASE_EDGE_PROTOCOL_ANALYSIS, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+          },
           body: JSON.stringify(payload),
         })
           .then(function(res) {
