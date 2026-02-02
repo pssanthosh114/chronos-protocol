@@ -145,6 +145,13 @@
     .protocol-log-entry-hidden {
       display: none;
     }
+    @keyframes analyzing-glow {
+      0%, 100% { box-shadow: 0 0 12px rgba(180, 227, 61, 0.35); }
+      50% { box-shadow: 0 0 24px rgba(180, 227, 61, 0.6); }
+    }
+    .btn-analyzing-glow {
+      animation: analyzing-glow 1.2s ease-in-out infinite;
+    }
   </style>
 </head>
 <body class="bg-carbon text-white font-sans antialiased min-h-screen" style="letter-spacing: 0.02em;">
@@ -483,6 +490,12 @@
                     <span class="text-white/60 text-xs font-medium tracking-widest uppercase">DIRECTIVE:</span>
                   </div>
                   <p id="directive-text" class="text-sage text-base font-light leading-relaxed ml-0"></p>
+                </div>
+
+                <div class="pt-4 border-t border-white/10">
+                  <button type="button" id="force-ai-reanalysis-btn" class="text-sage/90 text-xs font-medium tracking-wider uppercase hover:text-sage transition-colors py-2.5 px-4 rounded-lg border border-sage/30 hover:border-sage/50 focus:outline-none focus:ring-1 focus:ring-sage/40 disabled:opacity-70 disabled:cursor-not-allowed">
+                    Force AI Re-Analysis
+                  </button>
                 </div>
               </div>
             </div>
@@ -904,6 +917,7 @@
       var insightSection = document.getElementById('insight-section');
       var directiveSection = document.getElementById('directive-section');
       var lastAuditResult = { conflicts: [], keep: [], drop: [], add: [] };
+      var lastChronosContext = null;
 
       /**
        * Parse numeric value from clinical strings like "95 mg/dL" or "88 mg/dL".
@@ -1090,6 +1104,80 @@
         return 'Maintain protocol. Proceed with moderate intensity. Keep current supplement stack.' + stackStr;
       }
 
+      /**
+       * Collect current dashboard bio data from the DOM for AI re-analysis.
+       */
+      function collectDashboardPayload() {
+        var hrvEl = document.getElementById('hrv-value');
+        var sleepEl = document.getElementById('sleep-value');
+        var cortisolEl = document.getElementById('cortisol-value');
+        var memberEl = document.getElementById('member-name');
+        var statusEl = document.getElementById('protocol-status');
+        var hrv = hrvEl && hrvEl.textContent && hrvEl.textContent !== '—' ? parseFloat(hrvEl.textContent) : null;
+        var sleep_score = sleepEl && sleepEl.textContent && sleepEl.textContent !== '—' ? parseFloat(sleepEl.textContent) : null;
+        var cortisol = cortisolEl && cortisolEl.textContent && cortisolEl.textContent !== '—' ? parseFloat(cortisolEl.textContent) : null;
+        var biometrics = { hrv: hrv, sleep_score: sleep_score, cortisol: cortisol };
+        var stack = (lastChronosContext && lastChronosContext.supplement_stack) ? lastChronosContext.supplement_stack : [];
+        return {
+          biometrics: biometrics,
+          supplement_stack: stack,
+          member: memberEl ? memberEl.textContent : '',
+          current_regimen: statusEl ? statusEl.textContent : '',
+          clinical_markers: lastChronosContext && lastChronosContext.clinical_markers ? lastChronosContext.clinical_markers : {},
+          calendar_events: lastChronosContext && (lastChronosContext.calendar_events || lastChronosContext.clinical_audit && lastChronosContext.clinical_audit.calendar_events) ? (lastChronosContext.calendar_events || lastChronosContext.clinical_audit.calendar_events) : [],
+        };
+      }
+
+      /**
+       * Call AI (or fallback) to get a new directive. Returns { directive, insight, statusText, protocolLogMessage }.
+       */
+      function getProtocolDirective(payload) {
+        var apiUrl = '/api/protocol-analysis';
+        return fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+          .then(function(res) {
+            if (!res.ok) throw new Error('API not available');
+            return res.json();
+          })
+          .then(function(body) {
+            if (body.protocolCached) {
+              return {
+                directive: body.directive || 'Using last known protocol. AI temporarily unavailable.',
+                insight: body.insight || '',
+                statusText: body.statusText || 'Protocol Cached',
+                protocolLogMessage: body.protocolLogMessage || body.directive || '',
+              };
+            }
+            return {
+              directive: body.directive || body.data && body.data.directive || '',
+              insight: body.insight || body.data && body.data.insight || '',
+              statusText: body.statusText || body.data && body.data.statusText || 'Re-analyzed',
+              protocolLogMessage: body.protocolLogMessage || body.directive || body.data && (body.data.protocolLogMessage || body.data.directive) || '',
+            };
+          })
+          .catch(function() {
+            var bio = payload.biometrics || {};
+            var stack = payload.supplement_stack || [];
+            var directive = generateAIInstruction(bio, stack);
+            var hrv = bio.hrv;
+            var sleepScore = bio.sleep_score;
+            var insightParts = [];
+            if (hrv != null) {
+              insightParts.push('HRV (' + hrv + 'ms) ' + (hrv < 50 ? 'indicates recovery mode.' : hrv > 70 ? 'indicates peak neural readiness.' : 'indicates high neural readiness.'));
+            }
+            insightParts.push('Deep sleep recovery ' + (sleepScore != null && sleepScore < 70 ? 'needs attention.' : 'is prioritized.'));
+            return Promise.resolve({
+              directive: directive,
+              insight: insightParts.join(' '),
+              statusText: 'Re-analyzed (local)',
+              protocolLogMessage: directive,
+            });
+          });
+      }
+
       function fadeIn(element, delay) {
         setTimeout(function() {
           element.style.transition = 'opacity 0.8s ease-out, transform 0.8s ease-out';
@@ -1195,6 +1283,7 @@
        * Load Chronos engine: read biometrics, apply HRV/Sleep logic, update UI.
        */
       function loadChronosEngine(data) {
+        lastChronosContext = data;
         var bio = data.biometrics || {};
         var hrv = typeof bio.hrv === 'number' ? bio.hrv : null;
         var sleepScore = typeof bio.sleep_score === 'number' ? bio.sleep_score : null;
@@ -1403,6 +1492,47 @@
             updateProtocolLogVisibility();
           });
         }
+      })();
+
+      (function initForceAIReanalysis() {
+        var btn = document.getElementById('force-ai-reanalysis-btn');
+        var directiveText = document.getElementById('directive-text');
+        var statusTextEl = document.getElementById('status-text');
+        var insightTextEl = document.getElementById('insight-text');
+        var originalLabel = 'Force AI Re-Analysis';
+
+        if (!btn) return;
+
+        function setAnalyzing(analyzing) {
+          btn.disabled = analyzing;
+          btn.textContent = analyzing ? 'Analyzing Bio-Signals...' : originalLabel;
+          if (analyzing) btn.classList.add('btn-analyzing-glow');
+          else btn.classList.remove('btn-analyzing-glow');
+        }
+
+        btn.addEventListener('click', function() {
+          if (btn.disabled) return;
+          setAnalyzing(true);
+          var payload = collectDashboardPayload();
+          getProtocolDirective(payload)
+            .then(function(result) {
+              if (directiveText) directiveText.textContent = result.directive || directiveText.textContent;
+              if (statusTextEl) statusTextEl.textContent = result.statusText || statusTextEl.textContent;
+              if (insightTextEl) insightTextEl.textContent = result.insight || insightTextEl.textContent;
+              if (typeof addToProtocolLog === 'function' && (result.directive || result.protocolLogMessage)) {
+                addToProtocolLog('Biometric', result.directive || result.protocolLogMessage, result.insight || '');
+              }
+            })
+            .catch(function() {
+              if (directiveText) directiveText.textContent = 'Protocol Cached. Using last known directive.';
+              if (typeof addToProtocolLog === 'function') {
+                addToProtocolLog('Biometric', 'Re-analysis requested. Protocol Cached — AI unavailable.', '');
+              }
+            })
+            .finally(function() {
+              setAnalyzing(false);
+            });
+        });
       })();
 
       (function initIngestionZone() {

@@ -1,0 +1,12 @@
+{
+  "name": "chronos-protocol",
+  "version": "1.0.0",
+  "description": "Chronos Protocol — AI longevity dashboard and brain",
+  "main": "chronos-brain.js",
+  "scripts": {
+    "test-brain": "node -e \"require('./chronos-brain').processExecutiveData({}, {}, []).then(r => console.log(JSON.stringify(r, null, 2))).catch(e => console.error(e))\""
+  },
+  "dependencies": {
+    "openai": "^4.52.0"
+  }
+}
