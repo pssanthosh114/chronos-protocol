@@ -851,6 +851,14 @@
         }
       }
 
+      function showMembershipWall() {
+        var overlay = document.getElementById('membership-overlay');
+        if (overlay) {
+          overlay.style.display = 'flex';
+          document.body.classList.add('membership-overlay-active');
+        }
+      }
+
       (function initMembershipOverlay() {
         applyMembershipOverlay();
 
@@ -1102,6 +1110,30 @@
           return 'High Output: Neural readiness is peak. Proceed with High-Intensity training.' + stackStr;
         }
         return 'Maintain protocol. Proceed with moderate intensity. Keep current supplement stack.' + stackStr;
+      }
+
+      /**
+       * Scrapes HRV, Sleep, and RHR from the UI cards and returns a clean JSON object for the AI.
+       * Uses lastChronosContext for RHR when no RHR card is present in the DOM.
+       */
+      function gatherDashboardData() {
+        var hrvEl = document.getElementById('hrv-value');
+        var sleepEl = document.getElementById('sleep-value');
+        var rhrEl = document.getElementById('rhr-value');
+        var rawHrv = hrvEl && hrvEl.textContent ? hrvEl.textContent.trim() : '';
+        var rawSleep = sleepEl && sleepEl.textContent ? sleepEl.textContent.trim() : '';
+        var rawRhr = rhrEl && rhrEl.textContent ? rhrEl.textContent.trim() : '';
+        var hrv = rawHrv && rawHrv !== '—' ? parseFloat(rawHrv) : null;
+        var sleep_score = rawSleep && rawSleep !== '—' ? parseFloat(rawSleep) : null;
+        var resting_heart_rate = rawRhr && rawRhr !== '—' ? parseFloat(rawRhr) : null;
+        if (resting_heart_rate == null && lastChronosContext && lastChronosContext.biometrics && typeof lastChronosContext.biometrics.resting_heart_rate === 'number') {
+          resting_heart_rate = lastChronosContext.biometrics.resting_heart_rate;
+        }
+        return {
+          hrv: hrv,
+          sleep_score: sleep_score,
+          resting_heart_rate: resting_heart_rate,
+        };
       }
 
       /**
@@ -1510,28 +1542,38 @@
           else btn.classList.remove('btn-analyzing-glow');
         }
 
-        btn.addEventListener('click', function() {
+        function updateUI(response) {
+          if (directiveText) directiveText.textContent = response.directive || directiveText.textContent;
+          if (statusTextEl) statusTextEl.textContent = response.statusText || statusTextEl.textContent;
+          if (insightTextEl) insightTextEl.textContent = response.insight || insightTextEl.textContent;
+          if (typeof addToProtocolLog === 'function' && (response.directive || response.protocolLogMessage)) {
+            addToProtocolLog('Biometric', response.directive || response.protocolLogMessage, response.insight || '');
+          }
+        }
+
+        async function handleAnalysisClick() {
+          if (!isMember) {
+            showMembershipWall();
+            return;
+          }
           if (btn.disabled) return;
           setAnalyzing(true);
-          var payload = collectDashboardPayload();
-          getProtocolDirective(payload)
-            .then(function(result) {
-              if (directiveText) directiveText.textContent = result.directive || directiveText.textContent;
-              if (statusTextEl) statusTextEl.textContent = result.statusText || statusTextEl.textContent;
-              if (insightTextEl) insightTextEl.textContent = result.insight || insightTextEl.textContent;
-              if (typeof addToProtocolLog === 'function' && (result.directive || result.protocolLogMessage)) {
-                addToProtocolLog('Biometric', result.directive || result.protocolLogMessage, result.insight || '');
-              }
-            })
-            .catch(function() {
-              if (directiveText) directiveText.textContent = 'Protocol Cached. Using last known directive.';
-              if (typeof addToProtocolLog === 'function') {
-                addToProtocolLog('Biometric', 'Re-analysis requested. Protocol Cached — AI unavailable.', '');
-              }
-            })
-            .finally(function() {
-              setAnalyzing(false);
-            });
+          var currentDashboardData = collectDashboardPayload();
+          try {
+            var response = await getProtocolDirective(currentDashboardData);
+            updateUI(response);
+          } catch (e) {
+            if (directiveText) directiveText.textContent = 'Protocol Cached. Using last known directive.';
+            if (typeof addToProtocolLog === 'function') {
+              addToProtocolLog('Biometric', 'Re-analysis requested. Protocol Cached — AI unavailable.', '');
+            }
+          } finally {
+            setAnalyzing(false);
+          }
+        }
+
+        btn.addEventListener('click', function() {
+          handleAnalysisClick();
         });
       })();
 
