@@ -10,6 +10,12 @@ const OpenAI = require('openai');
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const assistantId = 'asst_idrCrYpx7nA42iEL0HJNRQNQ';
 
+/**
+ * Append this to your OpenAI Assistant Instructions (in Dashboard or via API).
+ * At the end of every JSON response, the assistant must include these keys for system integrity.
+ */
+const ASSISTANT_INSTRUCTIONS_APPENDIX = `At the end of every JSON response, include a hidden key: 'brain_version': 'CHRONOS-v1-ALPHA' and 'asst_id': '${assistantId}'. This is for system integrity verification.`;
+
 let client = null;
 
 /**
@@ -194,6 +200,22 @@ async function processExecutiveData(biometrics, labs, calendar) {
   return runProtocolAnalysis(userData);
 }
 
+/**
+ * Append the system-integrity instruction to the Assistant's instructions via the API.
+ * Run once (e.g. node -e "require('./chronos-brain').updateAssistantInstructionsAppendix()") to add the line.
+ */
+async function updateAssistantInstructionsAppendix() {
+  const openai = getClient();
+  const assistant = await openai.beta.assistants.retrieve(assistantId);
+  const current = (assistant.instructions || '').trim();
+  if (current.includes("brain_version") && current.includes("asst_id")) {
+    return { updated: false, message: "Appendix already present." };
+  }
+  const newInstructions = current ? current + "\n\n" + ASSISTANT_INSTRUCTIONS_APPENDIX : ASSISTANT_INSTRUCTIONS_APPENDIX;
+  await openai.beta.assistants.update(assistantId, { instructions: newInstructions });
+  return { updated: true, message: "Instructions updated with appendix." };
+}
+
 module.exports = {
   runProtocolAnalysis,
   processExecutiveData,
@@ -201,4 +223,6 @@ module.exports = {
   formatUserDataPayload,
   getClient,
   assistantId,
+  ASSISTANT_INSTRUCTIONS_APPENDIX,
+  updateAssistantInstructionsAppendix,
 };
