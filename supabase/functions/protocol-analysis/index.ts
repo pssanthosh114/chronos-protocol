@@ -2,7 +2,14 @@
 // Converts chronos-brain logic to Deno; returns AI clinical directive as JSON.
 
 import "@supabase/functions-js/edge-runtime.d.ts";
-import { OpenAI } from "https://esm.sh/openai@4.52.0";
+
+declare const Deno: {
+  serve: (handler: (req: Request) => Promise<Response> | Response) => unknown;
+  env: { get(key: string): string | undefined };
+};
+// Resolved at runtime via deno.json import map (openai -> npm:openai@4.52.0)
+// @ts-expect-error - IDE may not resolve Deno/npm specifiers without Deno extension
+import { OpenAI } from "openai";
 
 const ASSISTANT_ID = "asst_idrCrYpx7nA42iEL0HJNRQNQ";
 
